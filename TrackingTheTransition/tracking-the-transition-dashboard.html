@@ -58,6 +58,46 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
   .idot:nth-child(9) .idot-outer{animation-delay:2.4s}
   .idot:nth-child(10) .idot-outer{animation-delay:0.15s}
   .idot:nth-child(11) .idot-outer{animation-delay:0.45s}
+
+#country-panel{
+  position:absolute;top:0;right:0;height:100%;width:340px;
+  background:rgba(8,14,40,0.96);backdrop-filter:blur(18px);
+  border-left:1px solid rgba(25,205,155,0.18);
+  z-index:20;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.22,1,0.36,1);
+  overflow-y:auto;color:#fff;font-family:'Roboto',Arial,sans-serif;
+  box-sizing:border-box;padding:28px 24px 40px;
+}
+#country-panel.open{transform:translateX(0);}
+#panel-close{
+  position:absolute;top:16px;right:16px;width:28px;height:28px;
+  background:rgba(255,255,255,0.08);border:none;border-radius:50%;
+  color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background 0.2s;
+}
+#panel-close:hover{background:rgba(255,255,255,0.18);}
+#panel-flag{width:56px;height:auto;border-radius:4px;margin-bottom:10px;display:block;}
+#panel-name{font-size:22px;font-weight:700;margin:0 0 4px;letter-spacing:0.01em;}
+#panel-status{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px;opacity:0.6;}
+.panel-section{margin-bottom:18px;}
+.panel-section-title{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;opacity:0.45;margin-bottom:8px;}
+.commitment-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
+.commitment-badge{
+  min-width:20px;height:20px;border-radius:10px;font-size:9px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+.badge-yes{background:rgba(25,205,155,0.22);color:#19cd9b;border:1px solid rgba(25,205,155,0.4);}
+.badge-no{background:rgba(222,34,81,0.18);color:#de2251;border:1px solid rgba(222,34,81,0.3);}
+.badge-maybe{background:rgba(255,187,0,0.18);color:#ffbb00;border:1px solid rgba(255,187,0,0.3);}
+.badge-na{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.1);}
+.commitment-label{font-size:11px;opacity:0.75;line-height:1.4;}
+.commitment-note{font-size:10px;opacity:0.45;margin-top:1px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-box{
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  border-radius:6px;padding:10px 10px 8px;
+}
+.stat-value{font-size:18px;font-weight:700;color:rgba(25,205,155,0.9);}
+.stat-label{font-size:9px;opacity:0.4;text-transform:uppercase;letter-spacing:0.1em;margin-top:2px;}
 </style>
 
 <div id="wrap">
@@ -75,6 +115,27 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
   <div id="dim-overlay"></div>
   <div id="counter"><span id="cnt">0</span>Countries are in</div>
   <div id="hoverlabel"></div>
+
+<div id="country-panel">
+  <button id="panel-close" onclick="closePanel()">✕</button>
+  <img id="panel-flag" src="" alt="">
+  <div id="panel-name"></div>
+  <div id="panel-status"></div>
+  <div class="panel-section">
+    <div class="panel-section-title">Commitments</div>
+    <div id="panel-commitments"></div>
+  </div>
+  <div class="panel-section">
+    <div class="panel-section-title">Key figures</div>
+    <div class="stat-grid" id="panel-stats">
+      <div class="stat-box"><div class="stat-value">—</div><div class="stat-label">CO₂ emissions</div></div>
+      <div class="stat-box"><div class="stat-value">—</div><div class="stat-label">Renewable share</div></div>
+      <div class="stat-box"><div class="stat-value">—</div><div class="stat-label">Coal dependency</div></div>
+      <div class="stat-box"><div class="stat-value">—</div><div class="stat-label">Climate finance</div></div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
@@ -99,6 +160,47 @@ const ISLAND_NATIONS = ['Antigua and Barbuda', 'Kiribati', 'Maldives', 'Marshall
 const NAME_MAP = {'Dominican Republic': 'Dominican Rep.', 'Solomon Islands': 'Solomon Is.', 'Türkiye': 'Turkey', 'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom', 'United Republic of Tanzania': 'Tanzania'};
 
 const _displayNames = {};  // topo/sheet name → display name
+const _commitments = {};
+
+const ISO2 = {
+  "Afghanistan":"af","Albania":"al","Algeria":"dz","Angola":"ao","Argentina":"ar",
+  "Armenia":"am","Australia":"au","Austria":"at","Azerbaijan":"az","Bahamas":"bs",
+  "Bahrain":"bh","Bangladesh":"bd","Belarus":"by","Belgium":"be","Belize":"bz",
+  "Benin":"bj","Bhutan":"bt","Bolivia":"bo","Bosnia and Herz.":"ba","Botswana":"bw",
+  "Brazil":"br","Brunei":"bn","Bulgaria":"bg","Burkina Faso":"bf","Burundi":"bi",
+  "Cambodia":"kh","Cameroon":"cm","Canada":"ca","Central African Rep.":"cf","Chad":"td",
+  "Chile":"cl","China":"cn","Colombia":"co","Congo":"cg","Dem. Rep. Congo":"cd",
+  "Costa Rica":"cr","Croatia":"hr","Cuba":"cu","Cyprus":"cy","Czechia":"cz",
+  "Denmark":"dk","Djibouti":"dj","Dominican Rep.":"do","Ecuador":"ec","Egypt":"eg",
+  "El Salvador":"sv","Eritrea":"er","Estonia":"ee","Eswatini":"sz","Ethiopia":"et",
+  "Finland":"fi","France":"fr","Gabon":"ga","Germany":"de","Ghana":"gh","Greece":"gr",
+  "Guatemala":"gt","Guinea":"gn","Haiti":"ht","Honduras":"hn","Hungary":"hu",
+  "Iceland":"is","India":"in","Indonesia":"id","Iran":"ir","Iraq":"iq","Ireland":"ie",
+  "Israel":"il","Italy":"it","Jamaica":"jm","Japan":"jp","Jordan":"jo","Kazakhstan":"kz",
+  "Kenya":"ke","Kuwait":"kw","Kyrgyzstan":"kg","Laos":"la","Latvia":"lv","Lebanon":"lb",
+  "Lesotho":"ls","Liberia":"lr","Libya":"ly","Lithuania":"lt","Luxembourg":"lu",
+  "Madagascar":"mg","Malawi":"mw","Malaysia":"my","Mali":"ml","Mauritania":"mr",
+  "Mexico":"mx","Moldova":"md","Mongolia":"mn","Montenegro":"me","Morocco":"ma",
+  "Mozambique":"mz","Myanmar":"mm","Namibia":"na","Nepal":"np","Netherlands":"nl",
+  "New Zealand":"nz","Nicaragua":"ni","Niger":"ne","Nigeria":"ng","North Korea":"kp",
+  "North Macedonia":"mk","Norway":"no","Oman":"om","Pakistan":"pk","Palestine":"ps",
+  "Panama":"pa","Papua New Guinea":"pg","Paraguay":"py","Peru":"pe","Philippines":"ph",
+  "Poland":"pl","Portugal":"pt","Qatar":"qa","Romania":"ro","Russia":"ru","Rwanda":"rw",
+  "Saudi Arabia":"sa","Senegal":"sn","Serbia":"rs","Sierra Leone":"sl","Slovakia":"sk",
+  "Slovenia":"si","Solomon Is.":"sb","Somalia":"so","South Africa":"za","South Korea":"kr",
+  "South Sudan":"ss","Spain":"es","Sri Lanka":"lk","Sudan":"sd","Sweden":"se",
+  "Switzerland":"ch","Syria":"sy","Taiwan":"tw","Tajikistan":"tj","Tanzania":"tz",
+  "Thailand":"th","Timor-Leste":"tl","Togo":"tg","Trinidad and Tobago":"tt","Tunisia":"tn",
+  "Turkey":"tr","Turkmenistan":"tm","Uganda":"ug","Ukraine":"ua","United Arab Emirates":"ae",
+  "United Kingdom":"gb","United States of America":"us","Uruguay":"uy","Uzbekistan":"uz",
+  "Venezuela":"ve","Vietnam":"vn","Yemen":"ye","Zambia":"zm","Zimbabwe":"zw",
+  "Antigua and Barbuda":"ag","Kiribati":"ki","Maldives":"mv","Marshall Islands":"mh",
+  "Micronesia":"fm","Palau":"pw","Saint Kitts and Nevis":"kn","Saint Lucia":"lc",
+  "Singapore":"sg","Tuvalu":"tv"
+};
+function getISO2(name){ return ISO2[name] || ISO2[getDisplayName(name)] || null; }
+function getFlagUrl(name){ const c=getISO2(name); return c ? "https://flagcdn.com/w80/"+c+".png" : ""; }
+
 
 async function fetchCopy(){
   try{
@@ -133,6 +235,16 @@ async function fetchSheet(){
       const display = parts[2] ? parts[2].trim() : "";
       if(name && status) _statusMap[name] = status;
       if(name && display) _displayNames[name] = display;
+      if(name){
+        _commitments[name]={
+          conf1:  parts[3]?parts[3].trim():"",
+          conf2:  parts[5]?parts[5].trim():"",
+          fft:    parts[7]?parts[7].trim():"",
+          boga:   parts[9]?parts[9].trim():"",
+          ppca:   parts[11]?parts[11].trim():"",
+          cetp:   parts[13]?parts[13].trim():"",
+        };
+      }
     });
     _greenSet = new Set(Object.entries(_statusMap).filter(([,s])=>s==="green").map(([n])=>n));
     console.log("[Map] Sheet loaded, green:", _greenSet.size);
@@ -186,7 +298,7 @@ async function loadAndInit(){
       if(textNode) textNode.textContent=_copy.counter;
       else ctr.appendChild(document.createTextNode(_copy.counter));
     }
-    requestAnimationFrame(loop);setTimeout(runSequence,800);
+    requestAnimationFrame(loop);setTimeout(runSequence,200);
     console.log("[Map] init complete");
   }
   setTimeout(()=>tryInit(10),100);
@@ -282,14 +394,16 @@ window.addEventListener("mousemove", e => {
   if(hov && hov !== hoveredCountry){
     hoveredCountry = hov;
     const dname = getDisplayName(hov.name);
-    const status = _statusMap[hov.name] || _statusMap[Object.entries(NAME_MAP).find(([,t])=>t===hov.name)?.[0]] || (hov.isGreen?"green":"blue");
-    const suffix = _copy[status] || (hov.isGreen ? _copy.green : _copy.blue);
-    label.textContent = dname + " " + suffix;
+    const flagUrl = getFlagUrl(hov.name);
+    const flagHtml = flagUrl ? \`<img src="\${flagUrl}" style="height:14px;border-radius:2px;margin-right:6px;vertical-align:middle;opacity:0.9">\` : "";
+    label.innerHTML = flagHtml + \`<span>\${dname}</span> <span style="opacity:0.45;font-size:11px;margin-left:6px">↗</span>\`;
     label.className = "visible";
+    overlay.style.cursor = "pointer";
   } else if(!hov && hoveredCountry){
     hoveredCountry = null;
     label.className = "";
-    setTimeout(()=>{ if(!hoveredCountry) label.textContent=""; }, 350);
+    overlay.style.cursor = "default";
+    setTimeout(()=>{ if(!hoveredCountry) label.innerHTML=""; }, 350);
   }
 });
 
@@ -643,7 +757,7 @@ function runSequence(){
       if(ci>=totalIslands){afterDone(isls);return;}
       if(ii<isls.length){isls[ii].style.transition='opacity 0.9s ease-in-out';isls[ii].style.opacity='1';ii++;}
       ci++;document.getElementById('cnt').textContent=lit+ci;
-      seqTimer=setTimeout(lightOne,165+Math.random()*45);
+      seqTimer=setTimeout(lightOne,50+Math.random()*20);
     }
     lightOne();
   }
@@ -651,25 +765,25 @@ function runSequence(){
   function lightNext(){
     if(phase==="part1"){
       if(i<part1.length){
-        addTrans(part1[i],0,1,1000);
+        addTrans(part1[i],0,1,400);
         if(!part1[i].nocount)lit++;
         document.getElementById("cnt").textContent=lit;
         // Show city marker when Colombia (first) lights up
         if(i===0) showCityMarker("Santa Marta");
-        i++;seqTimer=setTimeout(lightNext,165+Math.random()*45);
+        i++;seqTimer=setTimeout(lightNext,50+Math.random()*20);
       } else {
         phase="islands";i=0;
         lightIslands(isls=>{
           lit+=totalIslands;phase="part2";lightNext._isls=isls;
-          seqTimer=setTimeout(lightNext,165+Math.random()*45);
+          seqTimer=setTimeout(lightNext,50+Math.random()*20);
         });
       }
     } else if(phase==="part2"){
-      if(i>=part2.length){seqTimer=setTimeout(()=>fadeAll([...part1,...part2],lightNext._isls),5000);return;}
-      addTrans(part2[i],0,1,1000);
+      if(i>=part2.length){ return; } // dashboard: stanna när klart
+      addTrans(part2[i],0,1,400);
       if(!part2[i].nocount)lit++;
       document.getElementById("cnt").textContent=lit;
-      i++;seqTimer=setTimeout(lightNext,165+Math.random()*45);
+      i++;seqTimer=setTimeout(lightNext,50+Math.random()*20);
     }
   }
 
@@ -683,7 +797,7 @@ function runSequence(){
     }
     document.getElementById("cnt").textContent="0";fadeOne();
   }
-  seqTimer=setTimeout(lightNext,200);
+  seqTimer=setTimeout(lightNext,100);
 }
 
 
@@ -821,6 +935,69 @@ function loop(ts){
     console.error("[Map] drawFrame error:", e);
   }
   requestAnimationFrame(loop);
+}
+
+
+overlay.addEventListener("click", e => {
+  if(!hoveredCountry) return;
+  openPanel(hoveredCountry.name);
+});
+
+const COMMIT_LABELS = [
+  ["conf1",  "Participated in 1st conference"],
+  ["conf2",  "Will join 2nd conference"],
+  ["fft",    "Fossil Fuel Treaty endorsement"],
+  ["boga",   "BOGA membership"],
+  ["ppca",   "Powering Past Coal Alliance"],
+  ["cetp",   "Clean Energy Transition Partnership"],
+];
+
+function badgeClass(val){
+  if(!val||val==="-"||val==="") return "badge-na";
+  const v=val.toLowerCase();
+  if(v==="yes"||v==="core"||v==="full") return "badge-yes";
+  if(v==="no") return "badge-no";
+  if(v==="undecided"||v==="observer") return "badge-maybe";
+  return "badge-maybe";
+}
+function badgeText(val){
+  if(!val||val==="") return "—";
+  return val;
+}
+
+function openPanel(name){
+  const dname = getDisplayName(name);
+  const flagUrl = getFlagUrl(name);
+  const status = _statusMap[name] || _statusMap[Object.entries(NAME_MAP).find(([,t])=>t===name)?.[0]] || "blue";
+  const statusLabels={green:"Joined",blue:"Not yet joined",red:"Not joined",yellow:"Observer"};
+  const statusColors={green:"#19cd9b",blue:"rgba(255,255,255,0.4)",red:"#de2251",yellow:"#ffbb00"};
+
+  const flagEl=document.getElementById("panel-flag");
+  if(flagUrl){flagEl.src=flagUrl;flagEl.style.display="block";}
+  else flagEl.style.display="none";
+
+  document.getElementById("panel-name").textContent=dname;
+  const statusEl=document.getElementById("panel-status");
+  statusEl.textContent=statusLabels[status]||status;
+  statusEl.style.color=statusColors[status]||"#fff";
+
+  const com = _commitments[name] || _commitments[Object.entries(NAME_MAP).find(([,t])=>t===name)?.[0]] || {};
+  const comEl=document.getElementById("panel-commitments");
+  comEl.innerHTML=COMMIT_LABELS.map(([key,lbl])=>{
+    const val=com[key]||"";
+    const bc=badgeClass(val);
+    const bt=badgeText(val);
+    return \`<div class="commitment-row">
+      <div class="commitment-badge \${bc}">\${bt.slice(0,3)}</div>
+      <div><div class="commitment-label">\${lbl}</div></div>
+    </div>\`;
+  }).join("");
+
+  document.getElementById("country-panel").classList.add("open");
+}
+
+function closePanel(){
+  document.getElementById("country-panel").classList.remove("open");
 }
 
 loadAndInit();

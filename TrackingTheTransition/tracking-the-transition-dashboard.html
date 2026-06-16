@@ -894,15 +894,17 @@ function drawFrame(ts){
   }
 
   // 4. Composite base + green (med pan+zoom för touch)
-  ctx.clearRect(0,0,w,h);
-  ctx.save();
+  // Compute source rect in offBase space → dest rect on screen
+  // offBase is CSS-pixel sized (w×h). We want the map zoomed around center.
   const _cx=w/2, _cy=h/2;
-  ctx.translate(_cx+panX, _cy+panY);
-  ctx.scale(mapScale, mapScale);
-  ctx.translate(-_cx, -_cy);
-  ctx.drawImage(offBase,0,0);
-  ctx.drawImage(offGreen,0,0);
-  ctx.restore();
+  // Source region: the portion of offBase that should fill the screen
+  const srcW = w / mapScale;
+  const srcH = h / mapScale;
+  const srcX = _cx - panX/mapScale - srcW/2;
+  const srcY = _cy - panY/mapScale - srcH/2;
+  ctx.clearRect(0,0,w,h);
+  ctx.drawImage(offBase, srcX, srcY, srcW, srcH, 0, 0, w, h);
+  ctx.drawImage(offGreen, srcX, srcY, srcW, srcH, 0, 0, w, h);
 
   // 5. Trail — advance age, draw fading particles, then remove dead ones
   ctx.save();

@@ -23,15 +23,24 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
   z-index:5;pointer-events:none;
 }
 #hoverlabel{
-  position:absolute;bottom:clamp(10px,3vw,30px);left:clamp(10px,3vw,30px);
-  color:rgba(255,255,255,0.0);
+  position:absolute;top:0;left:0;
+  color:rgba(255,255,255,0.0);opacity:0;
   font-family:'Roboto',Arial,sans-serif;
   font-size:13px;letter-spacing:0.04em;z-index:11;
-  text-shadow:0 1px 8px rgba(0,0,0,0.7);
-  transition:color 0.3s ease, opacity 0.3s ease;
+  text-shadow:0 1px 10px rgba(0,0,0,0.9);
+  transition:opacity 0.2s ease;
   pointer-events:none;
+  background:rgba(8,14,40,0.82);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+  padding:7px 11px;display:flex;align-items:center;gap:8px;
+  white-space:nowrap;
 }
-#hoverlabel.visible{color:rgba(255,255,255,0.88);}
+#hoverlabel.visible{color:rgba(255,255,255,0.92);opacity:1;}
+#hoverlabel .hl-arrow{
+  font-size:15px;opacity:0.7;margin-left:2px;
+  border:1px solid rgba(255,255,255,0.25);border-radius:4px;
+  padding:1px 5px;font-size:11px;letter-spacing:0.05em;
+}
 #counter{
   position:absolute;bottom:clamp(10px,3vw,30px);right:clamp(10px,3vw,30px);
   color:rgba(255,255,255,0.85);font-family:'Roboto',Arial,sans-serif;
@@ -340,7 +349,10 @@ function findHoveredCountry(mx, my){
     const pos=proj([isl.lon,isl.lat]);
     if(!pos) continue;
     const dx=mx-pos[0], dy=my-pos[1];
-    if(dx*dx+dy*dy<64) return {name:isl.name,isGreen:true,isIsland:true,path2d:null};
+    if(dx*dx+dy*dy<64){
+      const s=_statusMap[isl.name]||"blue";
+      return {name:isl.name,isGreen:s==="green",isRed:s==="red",isYellow:s==="yellow",isIsland:true,path2d:null};
+    }
   }
 
   // Use proj.invert() to convert canvas coords → lon/lat,
@@ -394,9 +406,11 @@ window.addEventListener("mousemove", e => {
   if(hov && hov !== hoveredCountry){
     hoveredCountry = hov;
     const dname = getDisplayName(hov.name);
+    const status = _statusMap[hov.name] || _statusMap[Object.entries(NAME_MAP).find(([,t])=>t===hov.name)?.[0]] || (hov.isGreen?"green":"blue");
+    const suffix = _copy[status] || (hov.isGreen ? _copy.green : _copy.blue);
     const flagUrl = getFlagUrl(hov.name);
-    const flagHtml = flagUrl ? `<img src="${flagUrl}" style="height:14px;border-radius:2px;margin-right:6px;vertical-align:middle;opacity:0.9">` : "";
-    label.innerHTML = flagHtml + `<span>${dname}</span> <span style="opacity:0.45;font-size:11px;margin-left:6px">↗</span>`;
+    const flagHtml = flagUrl ? `<img src="${flagUrl}" style="height:16px;border-radius:2px;flex-shrink:0;">` : "";
+    label.innerHTML = flagHtml + `<span>${dname} <em style="opacity:0.55;font-style:normal;font-size:11px;">${suffix}</em></span><span class="hl-arrow">↗</span>`;
     label.className = "visible";
     overlay.style.cursor = "pointer";
   } else if(!hov && hoveredCountry){
@@ -404,6 +418,15 @@ window.addEventListener("mousemove", e => {
     label.className = "";
     overlay.style.cursor = "default";
     setTimeout(()=>{ if(!hoveredCountry) label.innerHTML=""; }, 350);
+  }
+  // Flytta tooltip nära muspekaren
+  if(hoveredCountry){
+    const lbl=document.getElementById("hoverlabel");
+    const lw=lbl.offsetWidth||200, lh=lbl.offsetHeight||36;
+    const ox=16, oy=-lh-10;
+    const tx=Math.min(mouseX+ox, w-lw-8);
+    const ty=Math.max(mouseY+oy, 8);
+    lbl.style.transform=`translate(${tx}px,${ty}px)`;
   }
 });
 
@@ -523,18 +546,22 @@ function drawFrame(ts){
 
   // 1. Base countries
   for(const c of countries){
-    if(c.isGreen&&c.lit) continue;
-    if((c.isRed||c.isYellow)&&(c.alpha>0||c.lit)) continue; // drawn separately below
-    const a=c.alpha;
-    const r=Math.round(19+(25-19)*a);
-    const g=Math.round(23+(205-23)*a);
-    const b=Math.round(89+(155-89)*a);
-    const fa=0.90+(0.76-0.90)*a;
-    offBaseCtx.fillStyle=`rgba(${r},${g},${b},${fa})`;
-    offBaseCtx.fill(c.path2d);
-    offBaseCtx.strokeStyle=a>0?`rgba(25,205,155,${0.35+a*0.45})`:"rgba(35,44,150,0.60)";
-    offBaseCtx.lineWidth=0.5;
-    offBaseCtx.stroke(c.path2d);
+    if(c.isGreen&&c.lit) continue;  // fully lit green handled in green loop
+    if((c.isRed||c.isYellow)&&c.lit) continue; // fully lit colored handled below
+    const a = (c.isRed||c.isYellow) ? (1-c.alpha) : c.alpha; // crossfade: blue fades OUT
+    const blueA = (c.isRed||c.isYellow) ? (1-c.alpha) : c.alpha;
+    const r=Math.round(19+(25-19)*blueA);
+    const g=Math.round(23+(205-23)*blueA);
+    const b=Math.round(89+(155-89)*blueA);
+    const fa=0.90+(0.76-0.90)*blueA;
+    if(fa>0.01){
+      offBaseCtx.fillStyle=`rgba(${r},${g},${b},${fa})`;
+      offBaseCtx.fill(c.path2d);
+      offBaseCtx.strokeStyle=blueA>0?`rgba(25,205,155,${0.35+blueA*0.45})`:"rgba(35,44,150,0.60)";
+      offBaseCtx.lineWidth=0.5;
+      offBaseCtx.stroke(c.path2d);
+    }
+
   }
 
   // 1b. Red countries #de2251
@@ -672,8 +699,39 @@ function drawFrame(ts){
     offGreenCtx.lineWidth   = 0.8;
     offGreenCtx.stroke(hc.path2d);
     offGreenCtx.restore();
-  } else if(hoveredCountry && !hoveredCountry.isGreen && hoveredCountry.path2d){
-    // Non-committed country: subtle white stroke on hover
+  } else if(hoveredCountry && hoveredCountry.isRed && hoveredCountry.path2d){
+    const pulse2 = Math.sin(ts * 0.003);
+    offBaseCtx.save();
+    offBaseCtx.shadowColor = "rgba(222,34,81,0.95)";
+    offBaseCtx.shadowBlur  = 18;
+    offBaseCtx.strokeStyle = `rgba(255,100,130,${0.70+pulse2*0.20})`;
+    offBaseCtx.lineWidth   = 1.8;
+    offBaseCtx.stroke(hoveredCountry.path2d);
+    offBaseCtx.restore();
+    offBaseCtx.save();
+    offBaseCtx.shadowColor = "rgba(255,80,110,0.8)";
+    offBaseCtx.shadowBlur  = 6;
+    offBaseCtx.strokeStyle = `rgba(255,130,150,${0.50+pulse2*0.15})`;
+    offBaseCtx.lineWidth   = 0.8;
+    offBaseCtx.stroke(hoveredCountry.path2d);
+    offBaseCtx.restore();
+  } else if(hoveredCountry && hoveredCountry.isYellow && hoveredCountry.path2d){
+    const pulse3 = Math.sin(ts * 0.003);
+    offBaseCtx.save();
+    offBaseCtx.shadowColor = "rgba(255,187,0,0.95)";
+    offBaseCtx.shadowBlur  = 18;
+    offBaseCtx.strokeStyle = `rgba(255,220,80,${0.70+pulse3*0.20})`;
+    offBaseCtx.lineWidth   = 1.8;
+    offBaseCtx.stroke(hoveredCountry.path2d);
+    offBaseCtx.restore();
+    offBaseCtx.save();
+    offBaseCtx.shadowColor = "rgba(255,210,0,0.8)";
+    offBaseCtx.shadowBlur  = 6;
+    offBaseCtx.strokeStyle = `rgba(255,230,120,${0.50+pulse3*0.15})`;
+    offBaseCtx.lineWidth   = 0.8;
+    offBaseCtx.stroke(hoveredCountry.path2d);
+    offBaseCtx.restore();
+  } else if(hoveredCountry && !hoveredCountry.isGreen && !hoveredCountry.isRed && !hoveredCountry.isYellow && hoveredCountry.path2d){
     offBaseCtx.save();
     offBaseCtx.shadowColor = "rgba(255,255,255,0.25)";
     offBaseCtx.shadowBlur  = 8;
@@ -743,7 +801,7 @@ function runSequence(){
   const mapPriority=["Colombia","Netherlands"];
   const part1=mapPriority.map(n=>greens.find(c=>c.name===n||(NAME_MAP[n]&&NAME_MAP[n]===c.name))).filter(Boolean);
   const part2=[...greens].filter(c=>!mapPriority.includes(c.name)).sort(()=>Math.random()-0.5);
-  const greenIslands=ISLAND_NATIONS.filter(n=>isIslandGreen(n));
+  const greenIslands=ISLAND_NATIONS.filter(n=>(_statusMap[n]&&_statusMap[n]!=="blue"));
   const totalIslands=greenIslands.length;
   let i=0,lit=0,phase="part1";
 
@@ -887,7 +945,9 @@ function updateIslandSVG(){
   const svg=document.getElementById("islands");
   svg.querySelectorAll(".idot").forEach(el=>el.remove());
   for(const isl of SMALL_ISLANDS){
-    if(!isIslandGreen(isl.name)) continue;
+    const islStatus = _statusMap[isl.name] || "blue";
+    if(islStatus==="blue") continue; // visa bara icke-blå öar
+    const islColor = islStatus==="green"?"#19cd9b":islStatus==="red"?"#de2251":islStatus==="yellow"?"#ffbb00":"#19cd9b";
     const pos=proj([isl.lon,isl.lat]);
     if(!pos) continue;
     const px=pos[0],py=pos[1];
@@ -911,7 +971,7 @@ function updateIslandSVG(){
     blob.setAttribute("r","16");blob.setAttribute("fill",`url(#${gradId})`);blob.setAttribute("class","idot-outer");
     gblur.appendChild(blob);g.appendChild(gblur);
     const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
-    dot.setAttribute("r","1");dot.setAttribute("fill","rgba(25,205,155,1)");g.appendChild(dot);
+    dot.setAttribute("r","1");dot.setAttribute("fill",islColor);g.appendChild(dot);
     if(isTuvalu){
       const ring=document.createElementNS("http://www.w3.org/2000/svg","circle");
       ring.setAttribute("r","8");ring.setAttribute("fill","none");

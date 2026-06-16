@@ -395,8 +395,8 @@ window.addEventListener("mousemove", e => {
     hoveredCountry = hov;
     const dname = getDisplayName(hov.name);
     const flagUrl = getFlagUrl(hov.name);
-    const flagHtml = flagUrl ? \`<img src="\${flagUrl}" style="height:14px;border-radius:2px;margin-right:6px;vertical-align:middle;opacity:0.9">\` : "";
-    label.innerHTML = flagHtml + \`<span>\${dname}</span> <span style="opacity:0.45;font-size:11px;margin-left:6px">↗</span>\`;
+    const flagHtml = flagUrl ? `<img src="${flagUrl}" style="height:14px;border-radius:2px;margin-right:6px;vertical-align:middle;opacity:0.9">` : "";
+    label.innerHTML = flagHtml + `<span>${dname}</span> <span style="opacity:0.45;font-size:11px;margin-left:6px">↗</span>`;
     label.className = "visible";
     overlay.style.cursor = "pointer";
   } else if(!hov && hoveredCountry){
@@ -987,10 +987,10 @@ function openPanel(name){
     const val=com[key]||"";
     const bc=badgeClass(val);
     const bt=badgeText(val);
-    return \`<div class="commitment-row">
-      <div class="commitment-badge \${bc}">\${bt.slice(0,3)}</div>
-      <div><div class="commitment-label">\${lbl}</div></div>
-    </div>\`;
+    return `<div class="commitment-row">
+      <div class="commitment-badge ${bc}">${bt.slice(0,3)}</div>
+      <div><div class="commitment-label">${lbl}</div></div>
+    </div>`;
   }).join("");
 
   document.getElementById("country-panel").classList.add("open");

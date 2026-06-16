@@ -85,49 +85,91 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
   .idot:nth-child(10) .idot-outer{animation-delay:0.15s}
   .idot:nth-child(11) .idot-outer{animation-delay:0.45s}
 
+/* ── Modal overlay ── */
+#modal-overlay{
+  position:fixed;inset:0;z-index:20;
+  background:rgba(2,8,28,0.72);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.28s ease;
+}
+#modal-overlay.open{opacity:1;pointer-events:all;}
+
+/* ── Country panel (modal card) ── */
 #country-panel{
-  position:absolute;top:0;right:0;height:100%;
-  width:clamp(300px,24vw,400px);
-  padding:clamp(18px,2vw,28px);
-  background:rgba(4,13,38,0.98);backdrop-filter:blur(24px);
-  border-left:1px solid rgba(102,206,240,0.12);
-  z-index:20;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.22,1,0.36,1);
-  overflow-y:auto;color:#fff;font-family:'Inter',system-ui,sans-serif;
+  position:relative;
+  width:min(92vw,860px);
+  max-height:88vh;
+  background:linear-gradient(145deg,rgba(18,55,160,0.97) 0%,rgba(10,32,110,0.98) 100%);
+  backdrop-filter:blur(24px);
+  border:1px solid rgba(102,206,240,0.18);
+  border-radius:20px;
+  overflow-y:auto;
+  color:#fff;
+  font-family:'Inter',system-ui,sans-serif;
   box-sizing:border-box;
+  transform:scale(0.96) translateY(12px);
+  transition:transform 0.28s cubic-bezier(0.22,1,0.36,1);
+  scrollbar-width:thin;scrollbar-color:rgba(102,206,240,0.2) transparent;
 }
-#country-panel.open{transform:translateX(0);}
-@media(max-width:768px){
-  #country-panel{
-    top:auto;bottom:0;left:0;right:0;
-    width:100%;height:62vh;
-    border-left:none;border-top:1px solid rgba(25,205,155,0.18);
-    transform:translateY(110%);border-radius:16px 16px 0 0;
-    padding:20px 18px 32px;
-  }
-  #country-panel.open{transform:translateY(0);}
-  #panel-close{top:12px;right:12px;}
+#modal-overlay.open #country-panel{transform:scale(1) translateY(0);}
+
+/* ── Panel header ── */
+#panel-header{
+  display:flex;align-items:flex-start;gap:16px;
+  padding:28px 28px 20px;
+  border-bottom:1px solid rgba(102,206,240,0.10);
+  position:sticky;top:0;
+  background:linear-gradient(145deg,rgba(18,55,160,0.99) 0%,rgba(10,32,110,0.99) 100%);
+  z-index:2;
 }
+#panel-flag{width:52px;height:auto;border-radius:5px;flex-shrink:0;margin-top:3px;}
+#panel-flag[src=""]{display:none;}
+#panel-title-block{flex:1;}
+#panel-name{font-size:clamp(20px,3vw,28px);font-weight:700;margin:0 0 3px;letter-spacing:0.01em;}
+#panel-status{font-size:11px;letter-spacing:0.10em;text-transform:uppercase;opacity:0.55;}
 #panel-close{
-  position:absolute;top:16px;right:16px;width:28px;height:28px;
-  background:rgba(255,255,255,0.08);border:none;border-radius:50%;
-  color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:background 0.2s;
+  flex-shrink:0;width:32px;height:32px;margin-top:-2px;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:50%;
+  color:#fff;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s;
 }
 #panel-close:hover{background:rgba(255,255,255,0.18);}
-#panel-flag{width:56px;height:auto;border-radius:4px;margin-bottom:10px;display:block;}
-#panel-name{font-size:clamp(20px,2vw,28px);font-weight:700;margin:0 0 4px;letter-spacing:0.01em;}
-#panel-status{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px;opacity:0.6;}
-.panel-section{margin-bottom:18px;}
-.panel-section-title{font-size:clamp(9px,0.8vw,11px);letter-spacing:0.14em;text-transform:uppercase;opacity:0.55;margin-bottom:10px;}
-.commitment-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
-.commitment-badge{
-  min-width:22px;height:22px;border-radius:11px;font-size:10px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+
+/* ── Panel body ── */
+#panel-body{padding:22px 28px 28px;display:grid;grid-template-columns:1fr 1fr;gap:24px 32px;}
+@media(max-width:600px){#panel-body{grid-template-columns:1fr;} #panel-header{padding:20px 18px 16px;} #panel-body{padding:16px 18px 22px;}}
+.panel-section{margin-bottom:0;}
+.panel-section-title{
+  font-size:10px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;
+  color:#99def5;margin-bottom:12px;
 }
-.badge-yes{background:rgba(102,206,240,0.18);color:#66cef0;border:1px solid rgba(102,206,240,0.4);}
-.badge-no{background:rgba(222,34,81,0.18);color:#de2251;border:1px solid rgba(222,34,81,0.3);}
-.badge-maybe{background:rgba(255,187,0,0.18);color:#ffbb00;border:1px solid rgba(255,187,0,0.3);}
-.badge-na{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.1);}
+/* news section spans both cols */
+#section-news{grid-column:1/-1;}
+
+/* ── Commitments ── */
+.commitment-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.commitment-icon{font-size:17px;flex-shrink:0;line-height:1;width:22px;text-align:center;}
+.icon-yes{color:#2ecc8a;}
+.icon-no{color:#e8365a;}
+.icon-maybe{color:#f5c518;}
+.icon-na{color:rgba(255,255,255,0.22);font-size:14px;}
+.commitment-label{font-size:13px;opacity:0.85;line-height:1.35;}
+
+/* ── Stat boxes ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px 8px;}
+.stat-value{font-size:clamp(16px,2vw,22px);font-weight:700;color:#66cef0;}
+.stat-label{font-size:10px;opacity:0.5;text-transform:uppercase;letter-spacing:0.09em;margin-top:2px;}
+
+/* ── News ── */
+.news-item{padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.07);}
+.news-item:last-child{border-bottom:none;}
+.news-title{font-size:13px;line-height:1.45;color:rgba(255,255,255,0.88);text-decoration:none;display:block;margin-bottom:3px;}
+.news-title:hover{color:#66cef0;}
+.news-meta{font-size:10px;opacity:0.4;letter-spacing:0.04em;}
+#panel-news-loading{font-size:12px;opacity:0.4;padding:8px 0;}
 .commitment-label{font-size:clamp(12px,1.1vw,14px);opacity:0.82;line-height:1.4;}
 .commitment-note{font-size:10px;opacity:0.45;margin-top:1px;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -162,28 +204,35 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
   <div id="counter"><span id="cnt">0</span>Countries are in</div>
   <div id="hoverlabel"></div>
 
-<div id="country-panel">
-  <button id="panel-close" onclick="closePanel()">✕</button>
-  <img id="panel-flag" src="" alt="">
-  <div id="panel-name"></div>
-  <div id="panel-status"></div>
-  <div class="panel-section">
-    <div class="panel-section-title">Commitments</div>
-    <div id="panel-commitments"></div>
+<div id="modal-overlay" onclick="closePanel()">
+<div id="country-panel" onclick="event.stopPropagation()">
+  <div id="panel-header">
+    <img id="panel-flag" src="" alt="">
+    <div id="panel-title-block">
+      <div id="panel-name"></div>
+      <div id="panel-status"></div>
+    </div>
+    <button id="panel-close" onclick="closePanel()">✕</button>
   </div>
-  <div class="panel-section">
-    <div class="panel-section-title">Key figures</div>
-    <div class="stat-grid" id="panel-stats">
-      <div class="stat-box"><div class="stat-value">—</div><div class="stat-label">CO₂ emissions</div></div>
-      <div class="stat-box"><div class="stat-value">—</div><div class="stat-label">Renewable share</div></div>
-      <div class="stat-box"><div class="stat-value">—</div><div class="stat-label">Coal dependency</div></div>
-      <div class="stat-box"><div class="stat-value">—</div><div class="stat-label">Climate finance</div></div>
+  <div id="panel-body">
+    <div class="panel-section">
+      <div class="panel-section-title">Commitments</div>
+      <div id="panel-commitments"></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Transition Planning</div>
+      <div id="panel-transition"></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Energy Production</div>
+      <div id="panel-production"></div>
+    </div>
+    <div class="panel-section" id="section-news">
+      <div class="panel-section-title">News</div>
+      <div id="panel-news"><div id="panel-news-loading">Loading…</div></div>
     </div>
   </div>
-  <div class="panel-section">
-    <div class="panel-section-title">Climate news</div>
-    <div id="panel-news"><div id="panel-news-loading">Loading news…</div></div>
-  </div>
+</div>
 </div>
 
 </div>
@@ -361,34 +410,53 @@ async function fetchCopy(){
   }
 }
 
+function parseCSVLine(line){
+  // Proper CSV parser: handles "quoted, fields"
+  const out=[]; let cur="", inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){ inQ=!inQ; }
+    else if(c===','&&!inQ){ out.push(cur); cur=""; }
+    else cur+=c;
+  }
+  out.push(cur);
+  return out.map(s=>s.trim());
+}
+
 async function fetchSheet(){
   try{
     const res = await fetch(SHEET_URL, {mode:"cors",cache:"no-cache"});
     if(!res.ok) throw new Error("HTTP "+res.status);
     const csv = await res.text();
-    csv.trim().split("\n").slice(1).forEach(line=>{
-      // Split carefully — display name may contain commas
-      const parts = line.split(",");
-      const name = parts[0] ? parts[0].trim() : "";
-      const status = parts[1] ? parts[1].trim().toLowerCase() : "";
-      const display = parts[2] ? parts[2].trim() : "";
-      if(name && status) _statusMap[name] = status;
-      if(name && display) _displayNames[name] = display;
-      if(name){
-        _commitments[name]={
-          conf1:  parts[3]?parts[3].trim():"",
-          conf2:  parts[5]?parts[5].trim():"",
-          fft:    parts[7]?parts[7].trim():"",
-          boga:   parts[9]?parts[9].trim():"",
-          ppca:   parts[11]?parts[11].trim():"",
-          cetp:   parts[13]?parts[13].trim():"",
-        };
-      }
+    // Skip 3 header rows (row0=section, row1=category, row2=column names, row3=links)
+    csv.trim().split("\n").slice(4).forEach(line=>{
+      const parts = parseCSVLine(line);
+      const name = parts[0]||"";
+      const status = (parts[1]||"").toLowerCase();
+      const display = parts[2]||"";
+      if(!name) return;
+      if(status) _statusMap[name] = status;
+      if(display) _displayNames[name] = display;
+      // BOGA: Core/Associate → treat as Yes
+      const bogaRaw = parts[9]||"";
+      const bogaVal = (bogaRaw==="Core"||bogaRaw==="Associate") ? "Yes" : bogaRaw||"";
+      _commitments[name]={
+        conf1: parts[3]||"",
+        conf2: parts[5]||"",
+        fft:   parts[7]||"",
+        boga:  bogaVal,
+        ppca:  parts[11]||"",
+        cetp:  parts[13]||"",
+        taff:  parts[15]||"",
+        ndc:   parts[17]||"",
+        fossilFree: parts[19]||"",
+        change3yr:  parts[20]||"",
+      };
     });
     _greenSet = new Set(Object.entries(_statusMap).filter(([,s])=>s==="green").map(([n])=>n));
     console.log("[Map] Sheet loaded, green:", _greenSet.size);
   } catch(e){
-    console.warn("[Map] Sheet failed, using topo flags:", e.message);
+    console.warn("[Map] Sheet failed:", e.message);
   }
 }
 
@@ -1219,61 +1287,74 @@ overlay.addEventListener("click", e => {
 });
 
 const COMMIT_LABELS = [
-  ["conf1",  "Participated in 1st conference"],
-  ["conf2",  "Will join 2nd conference"],
-  ["fft",    "Fossil Fuel Treaty endorsement"],
-  ["boga",   "BOGA membership"],
-  ["ppca",   "Powering Past Coal Alliance"],
-  ["cetp",   "Clean Energy Transition Partnership"],
+  ["conf1", "Participated in 1st conference"],
+  ["conf2", "Will join 2nd conference"],
+  ["fft",   "Fossil Fuel Treaty endorsement"],
+  ["boga",  "Beyond Oil and Gas Alliance"],
+  ["ppca",  "Powering Past Coal Alliance"],
+  ["cetp",  "Clean Energy Transition Partnership"],
+];
+const TRANSITION_LABELS = [
+  ["taff", "TAFF Roadmap"],
+  ["ndc",  "NDC Status"],
 ];
 
-function badgeClass(val){
-  if(!val||val==="-"||val==="") return "badge-na";
+function commitIcon(val){
+  if(!val||val==="") return {cls:"icon-na", sym:"—"};
   const v=val.toLowerCase();
-  if(v==="yes"||v==="core"||v==="full") return "badge-yes";
-  if(v==="no") return "badge-no";
-  if(v==="undecided"||v==="observer") return "badge-maybe";
-  return "badge-maybe";
+  if(v==="yes"||v==="core"||v==="associate"||v==="full"||v==="published"||v==="submitted")
+    return {cls:"icon-yes", sym:"✓"};
+  if(v==="no") return {cls:"icon-no", sym:"✗"};
+  if(v==="undecided"||v==="observer"||v==="in progress"||v==="pending")
+    return {cls:"icon-maybe", sym:"?"};
+  return {cls:"icon-maybe", sym:"?"};
 }
-function badgeText(val){
-  if(!val||val==="") return "—";
-  return val;
+
+function renderCommitRows(labels, com){
+  return labels.map(([key,lbl])=>{
+    const {cls,sym}=commitIcon(com[key]||"");
+    return `<div class="commitment-row">
+      <span class="commitment-icon ${cls}">${sym}</span>
+      <span class="commitment-label">${lbl}</span>
+    </div>`;
+  }).join("");
 }
 
 function openPanel(name){
   const dname = getDisplayName(name);
   const flagUrl = getFlagUrl(name);
   const status = _statusMap[name] || _statusMap[Object.entries(NAME_MAP).find(([,t])=>t===name)?.[0]] || "blue";
-  const statusLabels={green:"Joined",blue:"Not yet joined",red:"Not joined",yellow:"Observer"};
-  const statusColors={green:"#19cd9b",blue:"rgba(255,255,255,0.4)",red:"#de2251",yellow:"#ffbb00"};
+  const statusLabels={green:"Joined the Coalition",blue:"Not yet joined",red:"Not joined",yellow:"Observer"};
+  const statusColors={green:"#2ecc8a",blue:"rgba(255,255,255,0.4)",red:"#e8365a",yellow:"#f5c518"};
 
   const flagEl=document.getElementById("panel-flag");
-  if(flagUrl){flagEl.src=flagUrl;flagEl.style.display="block";}
-  else flagEl.style.display="none";
-
+  flagEl.src=flagUrl||""; flagEl.style.display=flagUrl?"block":"none";
   document.getElementById("panel-name").textContent=dname;
   const statusEl=document.getElementById("panel-status");
   statusEl.textContent=statusLabels[status]||status;
   statusEl.style.color=statusColors[status]||"#fff";
 
   const com = _commitments[name] || _commitments[Object.entries(NAME_MAP).find(([,t])=>t===name)?.[0]] || {};
-  const comEl=document.getElementById("panel-commitments");
-  comEl.innerHTML=COMMIT_LABELS.map(([key,lbl])=>{
-    const val=com[key]||"";
-    const bc=badgeClass(val);
-    const bt=badgeText(val);
-    return `<div class="commitment-row">
-      <div class="commitment-badge ${bc}">${bt.slice(0,3)}</div>
-      <div><div class="commitment-label">${lbl}</div></div>
-    </div>`;
-  }).join("");
 
-  document.getElementById("country-panel").classList.add("open");
-  // Hämta nyheter async
+  document.getElementById("panel-commitments").innerHTML = renderCommitRows(COMMIT_LABELS, com);
+  document.getElementById("panel-transition").innerHTML  = renderCommitRows(TRANSITION_LABELS, com);
+
+  // Energy production
+  const ff = com.fossilFree ? Math.round(parseFloat(com.fossilFree)*100)+"%" : "—";
+  const ch = com.change3yr  ? (parseFloat(com.change3yr)>=0?"+":"")+Math.round(parseFloat(com.change3yr)*100)+"% (3yr)" : "";
+  document.getElementById("panel-production").innerHTML =
+    `<div class="stat-grid">
+      <div class="stat-box"><div class="stat-value">${ff}</div><div class="stat-label">Fossil-free electricity</div></div>
+      <div class="stat-box"><div class="stat-value">${ch||"—"}</div><div class="stat-label">3-year change</div></div>
+    </div>`;
+
+  document.getElementById("modal-overlay").classList.add("open");
+  document.getElementById("country-panel").scrollTop=0;
+
   const newsEl=document.getElementById("panel-news");
-  newsEl.innerHTML='<div id="panel-news-loading">Loading news…</div>';
+  newsEl.innerHTML='<div id="panel-news-loading">Loading…</div>';
   fetchCountryNews(dname).then(items=>renderNews(items,newsEl));
-  selectedCountry = countries.find(c=>c.name===name) || {name, path2d:null, isGreen:false, isRed:false, isYellow:false};
+  selectedCountry = countries.find(c=>c.name===name)||{name,path2d:null,isGreen:false,isRed:false,isYellow:false};
 }
 
 
@@ -1293,9 +1374,15 @@ async function fetchCountryNews(countryName){
     `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=20`,
   ];
 
+  const fetchWithTimeout = (url, ms=7000) => {
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), ms);
+    return fetch(url, {cache:'no-cache', signal:ctrl.signal}).finally(()=>clearTimeout(t));
+  };
+
   for(const proxyUrl of proxies){
     try{
-      const res = await fetch(proxyUrl, {cache:'no-cache', signal: AbortSignal.timeout(6000)});
+      const res = await fetchWithTimeout(proxyUrl);
       if(!res.ok) continue;
 
       // rss2json returns JSON
@@ -1384,9 +1471,10 @@ function appendNewsItems(container){
 }
 
 function closePanel(){
-  document.getElementById("country-panel").classList.remove("open");
+  document.getElementById("modal-overlay").classList.remove("open");
   selectedCountry = null;
 }
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closePanel(); });
 
 
 // ─── Touch pan + pinch zoom ────────────────────────────────────

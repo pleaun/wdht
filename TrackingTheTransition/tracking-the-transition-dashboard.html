@@ -4,11 +4,30 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tracking the Transition</title>
-<style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#040d1e;}</style>
-
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
-#wrap{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;background:#040d1e;font-family:'Roboto',Arial,sans-serif;box-sizing:border-box;}
+html,body{
+  margin:0;padding:0;width:100%;height:100dvh;
+  overflow:hidden;background:#040d1e;
+  /* iOS safe areas */
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+#wrap{
+  position:fixed;
+  top:env(safe-area-inset-top,0px);
+  left:env(safe-area-inset-left,0px);
+  right:env(safe-area-inset-right,0px);
+  bottom:env(safe-area-inset-bottom,0px);
+  overflow:hidden;background:#040d1e;
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  box-sizing:border-box;
+}
 #wrap *{box-sizing:border-box;}
 #bgvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
 
@@ -23,8 +42,8 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
 #hoverlabel{
   position:absolute;top:0;left:0;
   color:rgba(255,255,255,0.0);opacity:0;
-  font-family:'Roboto',Arial,sans-serif;
-  font-size:13px;letter-spacing:0.04em;z-index:11;
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:13px;font-weight:500;letter-spacing:0.01em;z-index:11;
   text-shadow:0 1px 10px rgba(0,0,0,0.9);
   transition:opacity 0.2s ease;
   pointer-events:none;
@@ -41,7 +60,7 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
 }
 #counter{
   position:absolute;bottom:clamp(10px,3vw,30px);right:clamp(10px,3vw,30px);
-  color:rgba(255,255,255,0.85);font-family:'Roboto',Arial,sans-serif;
+  color:rgba(255,255,255,0.85);font-family:'Inter',system-ui,sans-serif;
   font-size:12px;letter-spacing:0.07em;z-index:11;
   text-shadow:0 1px 8px rgba(0,0,0,0.6);text-align:right;
 }
@@ -68,12 +87,12 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
 
 #country-panel{
   position:absolute;top:0;right:0;height:100%;
-  width:clamp(300px,24vw,420px);
-  padding:clamp(18px,2vw,32px);
-  background:rgba(8,22,60,0.97);backdrop-filter:blur(20px);
-  border-left:1px solid rgba(25,205,155,0.15);
+  width:clamp(300px,24vw,400px);
+  padding:clamp(18px,2vw,28px);
+  background:rgba(4,13,38,0.98);backdrop-filter:blur(24px);
+  border-left:1px solid rgba(102,206,240,0.12);
   z-index:20;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.22,1,0.36,1);
-  overflow-y:auto;color:#fff;font-family:'Roboto',Arial,sans-serif;
+  overflow-y:auto;color:#fff;font-family:'Inter',system-ui,sans-serif;
   box-sizing:border-box;
 }
 #country-panel.open{transform:translateX(0);}
@@ -105,7 +124,7 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
   min-width:22px;height:22px;border-radius:11px;font-size:10px;font-weight:700;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
 }
-.badge-yes{background:rgba(25,205,155,0.22);color:#19cd9b;border:1px solid rgba(25,205,155,0.4);}
+.badge-yes{background:rgba(102,206,240,0.18);color:#66cef0;border:1px solid rgba(102,206,240,0.4);}
 .badge-no{background:rgba(222,34,81,0.18);color:#de2251;border:1px solid rgba(222,34,81,0.3);}
 .badge-maybe{background:rgba(255,187,0,0.18);color:#ffbb00;border:1px solid rgba(255,187,0,0.3);}
 .badge-na{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.1);}
@@ -116,13 +135,14 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
   background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
   border-radius:6px;padding:10px 10px 8px;
 }
-.stat-value{font-size:clamp(18px,1.8vw,24px);font-weight:700;color:rgba(25,205,155,0.9);}
+.stat-value{font-size:clamp(18px,1.8vw,24px);font-weight:700;color:#66cef0;}
+.panel-section-title{color:#99def5;letter-spacing:0.12em;}
 .stat-label{font-size:clamp(9px,0.8vw,11px);opacity:0.5;text-transform:uppercase;letter-spacing:0.1em;margin-top:2px;}
 
 .news-item{padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07);}
 .news-item:last-child{border-bottom:none;}
 .news-title{font-size:clamp(11px,1vw,13px);line-height:1.45;color:rgba(255,255,255,0.88);text-decoration:none;display:block;margin-bottom:3px;}
-.news-title:hover{color:#19cd9b;}
+.news-title:hover{color:#66cef0;}
 .news-meta{font-size:10px;opacity:0.4;letter-spacing:0.04em;}
 #panel-news-loading{font-size:11px;opacity:0.4;padding:8px 0;}
 </style>
@@ -878,7 +898,7 @@ function drawFrame(ts){
   ctx.save();
   const _cx=w/2, _cy=h/2;
   ctx.translate(_cx+panX, _cy+panY);
-  ctx.scale(mapScale);
+  ctx.scale(mapScale, mapScale);
   ctx.translate(-_cx, -_cy);
   ctx.drawImage(offBase,0,0);
   ctx.drawImage(offGreen,0,0);
@@ -1221,31 +1241,75 @@ function openPanel(name){
 }
 
 
+// News state
+let _newsAllItems = [];
+let _newsShown = 0;
+const NEWS_PAGE = 10;
+
 async function fetchCountryNews(countryName){
-  const q=encodeURIComponent(countryName+' climate energy transition');
-  const rssUrl=encodeURIComponent('https://news.google.com/rss/search?q='+q+'&hl=en&gl=US&ceid=US:en');
-  const apiUrl='https://api.rss2json.com/v1/api.json?rss_url='+rssUrl+'&count=5';
+  const q = encodeURIComponent(`"${countryName}" climate energy transition`);
+  const rssUrl = `https://news.google.com/rss/search?q=${q}&hl=en&gl=US&ceid=US:en`;
+  const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`;
   try{
-    const res=await fetch(apiUrl,{cache:'no-cache'});
-    const data=await res.json();
-    if(data.status==='ok'&&data.items&&data.items.length) return data.items;
-    return [];
+    const res = await fetch(proxyUrl, {cache:'no-cache'});
+    if(!res.ok) throw new Error('fetch failed');
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text,'text/xml');
+    const rawItems = [...xml.querySelectorAll('item')];
+    return rawItems.map(item=>{
+      // Google News RSS: link text is inside the element after <title>
+      const title = item.querySelector('title')?.textContent?.trim() || '';
+      // The actual URL is in <link> (text node after </title>), or in guid
+      let link = '';
+      // Try iterating child nodes to find the link text node (Google RSS quirk)
+      for(const node of item.childNodes){
+        if(node.nodeName==='link'){ link=node.textContent?.trim()||''; break; }
+      }
+      if(!link) link = item.querySelector('guid')?.textContent?.trim() || '';
+      const pubDate = item.querySelector('pubDate')?.textContent?.trim() || '';
+      const source = item.querySelector('source')?.textContent?.trim() || '';
+      return {title, link, pubDate, source};
+    }).filter(i=>i.title && i.link);
   }catch(e){ return []; }
 }
 
 function renderNews(items, container){
-  if(!items||!items.length){
-    container.innerHTML='<div id="panel-news-loading">No news found</div>';
+  _newsAllItems = items || [];
+  _newsShown = 0;
+  if(!_newsAllItems.length){
+    container.innerHTML='<div id="panel-news-loading" style="opacity:0.45;font-size:12px;padding:8px 0;">No news found</div>';
     return;
   }
-  container.innerHTML=items.map(item=>{
-    const date=item.pubDate?new Date(item.pubDate).toLocaleDateString('en',{month:'short',day:'numeric'}):'';
-    const src=item.source||'';
-    return `<div class="news-item">
-      <a class="news-title" href="${item.link}" target="_blank" rel="noopener">${item.title}</a>
-      <div class="news-meta">${src}${src&&date?' · ':''}${date}</div>
-    </div>`;
-  }).join('');
+  container.innerHTML='<div id="news-list"></div>';
+  appendNewsItems(container);
+}
+
+function appendNewsItems(container){
+  const list = container.querySelector('#news-list') || container;
+  const batch = _newsAllItems.slice(_newsShown, _newsShown + NEWS_PAGE);
+  batch.forEach(item=>{
+    const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('en',{month:'short',day:'numeric'}) : '';
+    const src = item.source || '';
+    const div = document.createElement('div');
+    div.className = 'news-item';
+    div.innerHTML = `<a class="news-title" href="${item.link}" target="_blank" rel="noopener">${item.title}</a>
+      <div class="news-meta">${src}${src&&date?' · ':''}${date}</div>`;
+    list.appendChild(div);
+  });
+  _newsShown += batch.length;
+  // Remove old "load more" btn if any
+  const old = container.querySelector('#news-load-more');
+  if(old) old.remove();
+  if(_newsShown < _newsAllItems.length){
+    const btn = document.createElement('button');
+    btn.id = 'news-load-more';
+    btn.textContent = `Load more (${_newsAllItems.length - _newsShown} remaining)`;
+    btn.style.cssText = 'margin-top:10px;width:100%;padding:8px 12px;background:rgba(102,206,240,0.10);border:1px solid rgba(102,206,240,0.25);border-radius:6px;color:#66cef0;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;letter-spacing:0.04em;transition:background 0.15s;';
+    btn.onmouseenter=()=>btn.style.background='rgba(102,206,240,0.18)';
+    btn.onmouseleave=()=>btn.style.background='rgba(102,206,240,0.10)';
+    btn.onclick=()=>appendNewsItems(container);
+    container.appendChild(btn);
+  }
 }
 
 function closePanel(){

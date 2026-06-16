@@ -597,21 +597,30 @@ function drawFrame(ts){
 
   // 1. Base countries
   for(const c of countries){
-    if(c.isGreen&&c.lit) continue;  // fully lit green handled in green loop
-    if((c.isRed||c.isYellow)&&c.lit) continue; // fully lit colored handled below
-    const a = (c.isRed||c.isYellow) ? (1-c.alpha) : c.alpha; // crossfade: blue fades OUT
-    const blueA = (c.isRed||c.isYellow) ? (1-c.alpha) : c.alpha;
-    const r=Math.round(19+(25-19)*blueA);
-    const g=Math.round(23+(205-23)*blueA);
-    const b=Math.round(89+(155-89)*blueA);
-    const fa=0.90+(0.76-0.90)*blueA;
-    if(fa>0.01){
-      offBaseCtx.fillStyle=`rgba(${r},${g},${b},${fa})`;
-      offBaseCtx.fill(c.path2d);
-      offBaseCtx.strokeStyle=blueA>0?`rgba(25,205,155,${0.35+blueA*0.45})`:"rgba(35,44,150,0.60)";
-      offBaseCtx.lineWidth=0.5;
-      offBaseCtx.stroke(c.path2d);
+    if(c.isGreen&&c.lit) continue;
+    if((c.isRed||c.isYellow)&&c.lit) continue;
+    if(c.isRed||c.isYellow){
+      // Statisk blå som fader ut medan röd/gul fader in — ingen grön tinge
+      const fadeOut=1-c.alpha;
+      if(fadeOut>0.01){
+        offBaseCtx.fillStyle=`rgba(19,23,89,${0.90*fadeOut})`;
+        offBaseCtx.fill(c.path2d);
+        offBaseCtx.strokeStyle=`rgba(35,44,150,${0.60*fadeOut})`;
+        offBaseCtx.lineWidth=0.5;
+        offBaseCtx.stroke(c.path2d);
+      }
+      continue;
     }
+    const a=c.alpha;
+    const r=Math.round(19+(25-19)*a);
+    const g=Math.round(23+(205-23)*a);
+    const b=Math.round(89+(155-89)*a);
+    const fa=0.90+(0.76-0.90)*a;
+    offBaseCtx.fillStyle=`rgba(${r},${g},${b},${fa})`;
+    offBaseCtx.fill(c.path2d);
+    offBaseCtx.strokeStyle=a>0?`rgba(25,205,155,${0.35+a*0.45})`:"rgba(35,44,150,0.60)";
+    offBaseCtx.lineWidth=0.5;
+    offBaseCtx.stroke(c.path2d);
 
   }
 

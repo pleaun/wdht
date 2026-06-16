@@ -2,16 +2,12 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Tracking the Transition</title>
 <style>
-html,body{
-  margin:0;padding:0;width:100%;height:100dvh;
-  overflow:hidden;background:#040d1e;
-  /* iOS safe areas */
-  padding-top:env(safe-area-inset-top);
-  padding-bottom:env(safe-area-inset-bottom);
-}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#040d1e;}
 </style>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,10 +16,7 @@ html,body{
 <style>
 #wrap{
   position:fixed;
-  top:env(safe-area-inset-top,0px);
-  left:env(safe-area-inset-left,0px);
-  right:env(safe-area-inset-right,0px);
-  bottom:env(safe-area-inset-bottom,0px);
+  inset:0;
   overflow:hidden;background:#040d1e;
   font-family:'Inter',system-ui,-apple-system,sans-serif;
   box-sizing:border-box;
@@ -59,7 +52,9 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
   padding:1px 5px;font-size:11px;letter-spacing:0.05em;
 }
 #counter{
-  position:absolute;bottom:clamp(10px,3vw,30px);right:clamp(10px,3vw,30px);
+  position:absolute;
+  bottom:max(clamp(10px,3vw,30px), env(safe-area-inset-bottom, 10px));
+  right:max(clamp(10px,3vw,30px), env(safe-area-inset-right, 10px));
   color:rgba(255,255,255,0.85);font-family:'Inter',system-ui,sans-serif;
   font-size:12px;letter-spacing:0.07em;z-index:11;
   text-shadow:0 1px 8px rgba(0,0,0,0.6);text-align:right;
@@ -278,7 +273,7 @@ function drawOcean(ts){
     const cx = W * g.cx + ox, cy = H * g.cy + oy;
     const rx = W * g.rx, ry = H * g.ry;
     const r  = Math.max(rx, ry);
-    const alpha = 0.50 + Math.sin(t * 0.38 + g.phase) * 0.12;
+    const alpha = 0.22 + Math.sin(t * 0.38 + g.phase) * 0.06;
     oceanCtx.save();
     oceanCtx.translate(cx, cy);
     oceanCtx.scale(rx / r, ry / r);
@@ -313,8 +308,34 @@ function drawOcean(ts){
     const sx=W*((i*0.137+Math.sin(t*0.08+i)*0.04+1)%1);
     const sy=H*((i*0.193+Math.cos(t*0.11+i*1.3)*0.04+1)%1);
     const pulse=0.5+0.5*Math.sin(t*(1.1+i*0.28)+i*2.7);
-    oceanCtx.fillStyle=`rgba(100,180,255,${pulse*0.30})`;
+    oceanCtx.fillStyle=`rgba(100,180,255,${pulse*0.18})`;
     oceanCtx.beginPath(); oceanCtx.arc(sx,sy,1.4,0,Math.PI*2); oceanCtx.fill();
+  }
+
+  // ── Curved lat lines matching map projection ──
+  if(typeof proj!=="undefined"&&proj&&typeof w!=="undefined"&&w>0){
+    const cx2=w/2, cy2=h/2;
+    const lats=[-60,-45,-30,-15,0,15,30,45,60,75];
+    for(let li=0;li<lats.length;li++){
+      const lat=lats[li];
+      const shimmer=0.5+0.5*Math.sin(t*0.6+li*0.9);
+      const baseAlpha=lat===0?0.12:0.055; // equator slightly brighter
+      const alpha=(baseAlpha+shimmer*0.025);
+      oceanCtx.beginPath();
+      let first=true;
+      for(let lon=-180;lon<=180;lon+=3){
+        const pt=proj([lon,lat]);
+        if(!pt)continue;
+        // Transform from offBase coords to screen (same as drawImage source→dest mapping)
+        const sx=cx2+(pt[0]-cx2)*mapScale+panX;
+        const sy=cy2+(pt[1]-cy2)*mapScale+panY;
+        if(first){oceanCtx.moveTo(sx,sy);first=false;}
+        else oceanCtx.lineTo(sx,sy);
+      }
+      oceanCtx.strokeStyle=`rgba(50,120,255,${alpha})`;
+      oceanCtx.lineWidth=lat===0?1.2:0.7;
+      oceanCtx.stroke();
+    }
   }
 }
 window.addEventListener("resize", resizeOcean);
@@ -544,7 +565,8 @@ function findHoveredCountry(mx, my){
     const pos=proj([isl.lon,isl.lat]);
     if(!pos) continue;
     const dx=mx-pos[0], dy=my-pos[1];
-    if(dx*dx+dy*dy<400){
+    const r=isl.r||20; // default 20px, custom r for tiny ones like Vatican
+    if(dx*dx+dy*dy<r*r){
       const s=_statusMap[isl.name]||"blue";
       return {name:isl.name,isGreen:s==="green",isRed:s==="red",isYellow:s==="yellow",isIsland:true,path2d:null};
     }
@@ -1002,6 +1024,8 @@ function drawFrame(ts){
   const srcX = _cx - panX/mapScale - srcW/2;
   const srcY = _cy - panY/mapScale - srcH/2;
   ctx.clearRect(0,0,w,h);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(offBase, srcX, srcY, srcW, srcH, 0, 0, w, h);
   ctx.drawImage(offGreen, srcX, srcY, srcW, srcH, 0, 0, w, h);
 
@@ -1153,7 +1177,7 @@ const SMALL_ISLANDS=[
   {name:"Saint Lucia",        lon:-61.0, lat:13.9},
   {name:"Singapore",          lon:103.8, lat:1.35},
   {name:"Tuvalu",             lon:179.2, lat:-7.5},
-  {name:"Vatican",            lon:12.45, lat:41.9},
+  {name:"Vatican",            lon:12.45, lat:41.9, r:5},
   {name:"Antigua and Barbuda",lon:-61.8, lat:17.1},
 ];
 
@@ -1478,14 +1502,14 @@ document.addEventListener("keydown", e=>{ if(e.key==="Escape") closePanel(); });
 
 // ─── Touch pan + pinch zoom ────────────────────────────────────
 let panX=0, panY=0;
-let mapScale=('ontouchstart' in window)?1.6:1.0;
+let mapScale=('ontouchstart' in window)?2.2:1.0;
 const MIN_SCALE=0.7, MAX_SCALE=6.0;
 let touchStartX=0,touchStartY=0,touchPanX=0,touchPanY=0;
 let pinchDist0=0,pinchScale0=1,pinchPanX0=0,pinchPanY0=0;
 let isTouching=false;
 
 function svgTransform(){
-  const cx=window.innerWidth/2, cy=window.innerHeight/2;
+  const cx=(w||window.innerWidth)/2, cy=(h||window.innerHeight)/2;
   const tx=cx+panX-mapScale*cx, ty=cy+panY-mapScale*cy;
   [document.getElementById("islands"),document.getElementById("cityMarkers")]
     .forEach(s=>{if(s)s.style.transform=`matrix(${mapScale},0,0,${mapScale},${tx},${ty})`;});

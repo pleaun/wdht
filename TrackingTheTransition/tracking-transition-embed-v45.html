@@ -1,0 +1,830 @@
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+#wrap{position:relative;width:100%;height:100%;overflow:hidden;background:#000;font-family:'Roboto',Arial,sans-serif;box-sizing:border-box;}
+#wrap *{box-sizing:border-box;}
+#bgvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;box-sizing:border-box;}
+#grad-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(25,205,155,0.85) 0%,rgba(25,205,155,0.1) 35%,rgba(25,205,155,0.0) 60%);
+  z-index:4;pointer-events:none;
+}
+#dim-overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,0.05);
+  z-index:5;pointer-events:none;
+}
+#hoverlabel{
+  position:absolute;bottom:clamp(10px,3vw,30px);left:clamp(10px,3vw,30px);
+  color:rgba(255,255,255,0.0);
+  font-family:'Roboto',Arial,sans-serif;
+  font-size:13px;letter-spacing:0.04em;z-index:11;
+  text-shadow:0 1px 8px rgba(0,0,0,0.7);
+  transition:color 0.3s ease, opacity 0.3s ease;
+  pointer-events:none;
+}
+#hoverlabel.visible{color:rgba(255,255,255,0.88);}
+#counter{
+  position:absolute;bottom:clamp(10px,3vw,30px);right:clamp(10px,3vw,30px);
+  color:rgba(255,255,255,0.85);font-family:'Roboto',Arial,sans-serif;
+  font-size:12px;letter-spacing:0.07em;z-index:11;
+  text-shadow:0 1px 8px rgba(0,0,0,0.6);text-align:right;
+}
+#counter span{color:rgba(25,205,155,0.90);font-size:22px;font-weight:700;display:block;}
+  .idot-outer{animation:ipulse 2.5s ease-in-out infinite;}
+  @keyframes tpulse{0%,100%{r:7;opacity:0.9;}50%{r:14;opacity:0.2;}}
+  .idot-inner{animation:ipulse 2.5s ease-in-out infinite;}
+  @keyframes ipulse{
+    0%,100%{opacity:0.50;}
+    50%{opacity:1;}
+  }
+  /* stagger each dot */
+  .idot:nth-child(1) .idot-outer{animation-delay:0s}
+  .idot:nth-child(2) .idot-outer{animation-delay:0.3s}
+  .idot:nth-child(3) .idot-outer{animation-delay:0.6s}
+  .idot:nth-child(4) .idot-outer{animation-delay:0.9s}
+  .idot:nth-child(5) .idot-outer{animation-delay:1.2s}
+  .idot:nth-child(6) .idot-outer{animation-delay:1.5s}
+  .idot:nth-child(7) .idot-outer{animation-delay:1.8s}
+  .idot:nth-child(8) .idot-outer{animation-delay:2.1s}
+  .idot:nth-child(9) .idot-outer{animation-delay:2.4s}
+  .idot:nth-child(10) .idot-outer{animation-delay:0.15s}
+  .idot:nth-child(11) .idot-outer{animation-delay:0.45s}
+</style>
+
+<div id="wrap">
+  <video id="bgvid" autoplay loop muted playsinline>
+    <source src="https://s3.amazonaws.com/webflow-prod-assets/5c9b9655ce348575963a7f06/619f97c2508afd9196e5a7bf_WebBG-Earth-loop-blue3.mp4" type="video/mp4">
+  </video>
+  <canvas id="map"></canvas>
+  <svg id="cityMarkers" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:visible;"></svg>
+  <svg id="islands" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:visible;">
+    <defs>
+
+    </defs>
+  </svg>
+  <div id="grad-overlay"></div>
+  <div id="dim-overlay"></div>
+  <div id="counter"><span id="cnt">0</span>Countries are in</div>
+  <div id="hoverlabel"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+let _TOPO = null;
+let _greenSet = null;
+let _statusMap = {};
+
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0b53-bH6EW2fJnlELIFMnlBz8qwJnnmylQFEkJUpIHp97gKIEv0IlE8FfSwZG8_nsAcAWI4bZ7NvU/pub?gid=54332534&single=true&output=csv";
+const COPY_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0b53-bH6EW2fJnlELIFMnlBz8qwJnnmylQFEkJUpIHp97gKIEv0IlE8FfSwZG8_nsAcAWI4bZ7NvU/pub?gid=1536498573&single=true&output=csv";
+
+// Copy texts — defaults, overridden by sheet
+let _copy = {
+  counter:    "Countries are in",
+  green:      "joined the first conference",
+  blue:       "did not join the first conference",
+  red:        "did not join the first conference",
+  yellow:     "did not join the first conference",
+};
+const ISLAND_NATIONS = ['Antigua and Barbuda', 'Kiribati', 'Maldives', 'Marshall Islands', 'Micronesia', 'Palau', 'Saint Kitts and Nevis', 'Saint Lucia', 'Singapore', 'Tuvalu', 'Vatican - Santa Sede'];
+const NAME_MAP = {'Dominican Republic': 'Dominican Rep.', 'Solomon Islands': 'Solomon Is.', 'Türkiye': 'Turkey', 'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom', 'United Republic of Tanzania': 'Tanzania'};
+
+const _displayNames = {};  // topo/sheet name → display name
+
+async function fetchCopy(){
+  try{
+    const res = await fetch(COPY_URL, {mode:"cors",cache:"no-cache"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const csv = await res.text();
+    const rows = csv.trim().split("\n").slice(1); // skip header
+    // Row order: Counter, Green, Blue, Red, Yellow
+    const keys = ["counter","green","blue","red","yellow"];
+    rows.forEach((line,i)=>{
+      const parts = line.split(",");
+      const val = parts.slice(1).join(",").trim(); // col B (may contain commas)
+      if(val && keys[i]) _copy[keys[i]] = val;
+    });
+    console.log("[Map] Copy loaded:", _copy);
+
+  } catch(e){
+    console.warn("[Map] Copy sheet failed, using defaults:", e.message);
+  }
+}
+
+async function fetchSheet(){
+  try{
+    const res = await fetch(SHEET_URL, {mode:"cors",cache:"no-cache"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const csv = await res.text();
+    csv.trim().split("\n").slice(1).forEach(line=>{
+      // Split carefully — display name may contain commas
+      const parts = line.split(",");
+      const name = parts[0] ? parts[0].trim() : "";
+      const status = parts[1] ? parts[1].trim().toLowerCase() : "";
+      const display = parts[2] ? parts[2].trim() : "";
+      if(name && status) _statusMap[name] = status;
+      if(name && display) _displayNames[name] = display;
+    });
+    _greenSet = new Set(Object.entries(_statusMap).filter(([,s])=>s==="green").map(([n])=>n));
+    console.log("[Map] Sheet loaded, green:", _greenSet.size);
+  } catch(e){
+    console.warn("[Map] Sheet failed, using topo flags:", e.message);
+  }
+}
+
+function getDisplayName(name){
+  // Check sheet display name, then direct name
+  if(_displayNames[name]) return _displayNames[name];
+  // Check reverse name map
+  for(const [sheet, topo] of Object.entries(NAME_MAP)){
+    if(topo === name && _displayNames[sheet]) return _displayNames[sheet];
+  }
+  // Fallback: use the name itself
+  return name;
+}
+
+function isGreenBySheet(topoName){
+  if(!_greenSet) return false;
+  if(_greenSet.has(topoName)) return true;
+  for(const [sheet,topo] of Object.entries(NAME_MAP)){
+    if(topo===topoName && _greenSet.has(sheet)) return true;
+  }
+  return false;
+}
+
+function isIslandGreen(islandName){
+  return !_greenSet || _greenSet.has(islandName);
+}
+
+async function loadAndInit(){
+  console.log("[Map] loadAndInit started");
+  const [,,topoData] = await Promise.all([
+    fetchSheet(),
+    fetchCopy(),
+    fetch("https://raw.githubusercontent.com/pleaun/wdht/main/countries-110m-green-v2.json",{mode:"cors"})
+      .then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+      .catch(e=>{console.error("[Map] Topo failed:",e);return null;})
+  ]);
+  if(!topoData)return;
+  _TOPO = topoData;
+  function tryInit(att){
+    resize();
+    if((w<10||h<10)&&att>0){setTimeout(()=>tryInit(att-1),150);return;}
+    try{buildPaths();}catch(e){console.error("[Map] buildPaths:",e);return;}
+    try{updateIslandSVG();updateCityMarkers();}catch(e){console.error("[Map] updateIslandSVG:",e);return;}
+    // Set counter label from copy sheet
+    const ctr=document.getElementById("counter");
+    if(ctr){
+      // Replace text node (last child) with copy text
+      const nodes=[...ctr.childNodes];
+      const textNode=nodes.find(n=>n.nodeType===3&&n.textContent.trim());
+      if(textNode) textNode.textContent=_copy.counter;
+      else ctr.appendChild(document.createTextNode(_copy.counter));
+    }
+    requestAnimationFrame(loop);setTimeout(runSequence,800);
+    console.log("[Map] init complete");
+  }
+  setTimeout(()=>tryInit(10),100);
+}
+
+
+const canvas     = document.getElementById("map");
+const ctx        = canvas.getContext("2d");
+const offBase    = document.createElement("canvas");
+const offBaseCtx = offBase.getContext("2d");
+const offGreen   = document.createElement("canvas");
+const offGreenCtx= offGreen.getContext("2d");
+const offTex     = document.createElement("canvas");
+const offTexCtx  = offTex.getContext("2d");
+const texCanvas  = document.createElement("canvas");
+const texCtx     = texCanvas.getContext("2d");
+
+let w, h, dpr, proj, pathFn;
+let countries = [];
+let activeTransitions = [];
+
+// ─── Trail particles ───────────────────────────────────────────
+const TRAIL_MAX = 28;
+const trail = [];   // {x, y, age, maxAge, r}
+
+let mouseX = -999, mouseY = -999;
+let prevMouseX = -999, prevMouseY = -999;
+let mouseMoving = false;
+let mouseStopTimer = null;
+
+// ─── Hover state ──────────────────────────────────────────────
+let hoveredCountry = null;
+
+function findHoveredCountry(mx, my){
+  if(!proj) return null;
+
+  // Check small islands first — 40px radius hit area
+  for(const isl of SMALL_ISLANDS){
+    const pos=proj([isl.lon,isl.lat]);
+    if(!pos) continue;
+    const dx=mx-pos[0], dy=my-pos[1];
+    if(dx*dx+dy*dy<64) return {name:isl.name,isGreen:true,isIsland:true,path2d:null};
+  }
+
+  // Use proj.invert() to convert canvas coords → lon/lat,
+  // then d3.geoContains() to test which country contains the point.
+  // This bypasses all canvas transform issues entirely.
+  const lonlat = proj.invert([mx, my]);
+  if(!lonlat) return null;
+
+  for(let i=countries.length-1;i>=0;i--){
+    if(d3.geoContains(countries[i].feature, lonlat)){
+      return countries[i];
+    }
+  }
+  return null;
+}
+
+// Overlay div captures all mouse events reliably
+const overlay = document.createElement("div");
+overlay.style.cssText = "position:absolute;inset:0;z-index:5;cursor:default;";
+document.getElementById("wrap").appendChild(overlay);
+
+// window listener for trail (never loses events when cursor leaves canvas)
+window.addEventListener("mousemove", e => {
+  prevMouseX = mouseX; prevMouseY = mouseY;
+  const _r = canvas.getBoundingClientRect();
+  mouseX = e.clientX - _r.left;
+  mouseY = e.clientY - _r.top;
+  const dx = mouseX - prevMouseX;
+  const dy = mouseY - prevMouseY;
+  const speed = Math.sqrt(dx*dx+dy*dy);
+
+  // Emit a trail particle proportional to speed
+  if(speed > 1.5 && prevMouseX > 0){
+    const r = 18 + speed * 1.8;
+    trail.push({
+      x: mouseX, y: mouseY,
+      age: 0,
+      maxAge: 38 + speed * 2,
+      r: Math.min(r, 80),
+    });
+    if(trail.length > TRAIL_MAX) trail.shift();
+  }
+
+  mouseMoving = true;
+  clearTimeout(mouseStopTimer);
+  mouseStopTimer = setTimeout(() => { mouseMoving = false; }, 80);
+
+  // Country hover detection
+  const hov = findHoveredCountry(mouseX, mouseY);
+  const label = document.getElementById("hoverlabel");
+  if(hov && hov !== hoveredCountry){
+    hoveredCountry = hov;
+    const dname = getDisplayName(hov.name);
+    const status = _statusMap[hov.name] || _statusMap[Object.entries(NAME_MAP).find(([,t])=>t===hov.name)?.[0]] || (hov.isGreen?"green":"blue");
+    const suffix = _copy[status] || (hov.isGreen ? _copy.green : _copy.blue);
+    label.textContent = dname + " " + suffix;
+    label.className = "visible";
+  } else if(!hov && hoveredCountry){
+    hoveredCountry = null;
+    label.className = "";
+    setTimeout(()=>{ if(!hoveredCountry) label.textContent=""; }, 350);
+  }
+});
+
+window.addEventListener("mouseleave", () => {
+  mouseX = -999; mouseY = -999;
+  trail.length = 0;
+});
+
+// ─── Noise texture — v7 coarse + fine grain ────────────────────
+const texFine   = document.createElement("canvas");
+const texFineCtx= texFine.getContext("2d");
+const offTex2   = document.createElement("canvas");
+const offTex2Ctx= offTex2.getContext("2d");
+
+function bakeNoise(){
+  const tw=Math.ceil(w), th=Math.ceil(h);
+
+  // Coarse organic blobs
+  texCanvas.width=tw; texCanvas.height=th;
+  const idA=texCtx.createImageData(tw,th); const dA=idA.data;
+  for(let y=0;y<th;y++){
+    for(let x=0;x<tw;x++){
+      const i=(y*tw+x)*4;
+      const v=(
+        Math.sin(x*0.015+1.1)*Math.cos(y*0.019+0.7)*0.4+
+        Math.sin(x*0.031+2.3)*Math.cos(y*0.028+1.4)*0.35+
+        Math.sin(x*0.009)*Math.cos(y*0.011+0.3)*0.25
+      )*0.5+0.5;
+      const lum=(v*200)|0;
+      dA[i]=lum*0.4|0; dA[i+1]=lum*0.45|0; dA[i+2]=lum;
+      dA[i+3]=(v*140+15)|0;
+    }
+  }
+  texCtx.putImageData(idA,0,0);
+
+  // Fine pixel grain
+  texFine.width=tw; texFine.height=th;
+  if(typeof offTex2!=="undefined"){offTex2.width=tw; offTex2.height=th;}
+  const idB=texFineCtx.createImageData(tw,th); const dB=idB.data;
+  for(let i=0;i<dB.length;i+=4){
+    const v=(Math.random()*230)|0;
+    dB[i]=v*0.3|0; dB[i+1]=v*0.35|0; dB[i+2]=v;
+    dB[i+3]=Math.random()<0.58?(Math.random()*85+15)|0:0;
+  }
+  texFineCtx.putImageData(idB,0,0);
+}
+
+// ─── Resize ────────────────────────────────────────────────────
+function resize(){
+  dpr = Math.min(window.devicePixelRatio||1, 2);
+
+  // Use clientWidth/Height — actual CSS rendered size, scroll-independent
+  // This matches the coordinate space used for mouseX/Y
+  // Always use clientWidth/Height — reflects actual CSS size
+  w = canvas.clientWidth  || window.innerWidth;
+  h = canvas.clientHeight || window.innerHeight;
+  // Safety: if clientHeight=0 (before layout), retry after delay
+  if(h < 10){ setTimeout(resize, 100); return; }
+
+  canvas.width  = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  offBase.width=Math.round(w); offBase.height=Math.round(h);
+  offGreen.width=Math.round(w); offGreen.height=Math.round(h);
+  offTex.width=Math.round(w);   offTex.height=Math.round(h);
+  offTex2.width=Math.round(w);  offTex2.height=Math.round(h);
+
+  // Project Natural Earth to fit: scale so map fills width,
+  // then center vertically on the landmass band (lat -56 to +80)
+  const probeScale=150;
+  const pp=d3.geoNaturalEarth1().rotate([-24,0,0]).scale(probeScale).translate([0,0]);
+  const pTuvalu=pp([179.2,-7.5]);
+  const pRight=pp([168,0]);
+  const xExtent=Math.max(Math.abs(pTuvalu[0]),Math.abs(pRight[0]))*2;
+  const yExtent=pp([0,-58])[1]-pp([0,82])[1];
+  const pad=0.02;
+  const baseScale=Math.min(probeScale*(w*(1-pad*2)/xExtent), probeScale*(h*(1-pad*2)/yExtent));
+  const tmp=d3.geoNaturalEarth1().rotate([-24,0,0]).scale(baseScale).translate([0,0]);
+  const yMid=(tmp([0,80])[1]+tmp([0,-56])[1])*0.5;
+  proj=d3.geoNaturalEarth1().rotate([-24,0,0]).scale(baseScale).translate([w*0.5,h*0.5-yMid]);
+  pathFn=d3.geoPath().projection(proj);
+  bakeNoise();
+}
+
+// ─── Build paths ───────────────────────────────────────────────
+function buildPaths(){
+  countries=[];
+  const features=topojson.feature(_TOPO,_TOPO.objects.countries).features
+    .filter(f=>f.properties.name!=="Antarctica");
+  for(const f of features){
+    const d=pathFn(f); if(!d) continue;
+    const cName=f.properties.name||"";
+    const cStatus=_statusMap[cName]||(Object.entries(NAME_MAP).find(([,t])=>t===cName)?_statusMap[Object.entries(NAME_MAP).find(([,t])=>t===cName)[0]]:null)||( f.properties.green?"green":"blue");
+    const cGreen = cStatus==="green";
+    const cRed   = cStatus==="red";
+    const cYellow= cStatus==="yellow";
+    countries.push({
+      path2d:    new Path2D(d),
+      feature:   f,
+      isGreen:   cGreen,
+      isRed:     cRed,
+      isYellow:  cYellow,
+      nocount:   cName==="Greenland"||cRed||cYellow,
+      name:      cName,
+      lit:       false, alpha:0,
+      pulsePhase:Math.random()*Math.PI*2,
+      pulseSpeed:0.00018+Math.random()*0.00012,
+    });
+  }
+  document.getElementById("cnt").textContent="0";
+}
+
+// ─── Draw ──────────────────────────────────────────────────────
+function drawFrame(ts){
+  offBaseCtx.clearRect(0,0,w,h);
+  offGreenCtx.clearRect(0,0,w,h);
+
+  // 1. Base countries
+  for(const c of countries){
+    if(c.isGreen&&c.lit) continue;
+    if((c.isRed||c.isYellow)&&(c.alpha>0||c.lit)) continue; // drawn separately below
+    const a=c.alpha;
+    const r=Math.round(19+(25-19)*a);
+    const g=Math.round(23+(205-23)*a);
+    const b=Math.round(89+(155-89)*a);
+    const fa=0.90+(0.76-0.90)*a;
+    offBaseCtx.fillStyle=`rgba(${r},${g},${b},${fa})`;
+    offBaseCtx.fill(c.path2d);
+    offBaseCtx.strokeStyle=a>0?`rgba(25,205,155,${0.35+a*0.45})`:"rgba(35,44,150,0.60)";
+    offBaseCtx.lineWidth=0.5;
+    offBaseCtx.stroke(c.path2d);
+  }
+
+  // 1b. Red countries #de2251
+  for(const c of countries){
+    if(!c.isRed||(c.alpha<=0&&!c.lit)) continue;
+    const a=c.lit?1:c.alpha;
+    const pulse=Math.sin(performance.now()*0.00120+c.pulsePhase);
+    offBaseCtx.save();
+    offBaseCtx.shadowColor=`rgba(222,34,81,${(0.35+pulse*0.1)*a})`;
+    offBaseCtx.shadowBlur=14;
+    offBaseCtx.fillStyle=`rgba(222,34,81,${(0.72+pulse*0.06)*a})`;
+    offBaseCtx.fill(c.path2d);
+    offBaseCtx.strokeStyle=`rgba(222,34,81,${(0.85+pulse*0.05)*a})`;
+    offBaseCtx.lineWidth=0.8;
+    offBaseCtx.stroke(c.path2d);
+    offBaseCtx.restore();
+  }
+
+  // 1c. Yellow countries #ffbb00
+  for(const c of countries){
+    if(!c.isYellow||(c.alpha<=0&&!c.lit)) continue;
+    const a=c.lit?1:c.alpha;
+    const pulse=Math.sin(performance.now()*0.00110+c.pulsePhase);
+    offBaseCtx.save();
+    offBaseCtx.shadowColor=`rgba(255,187,0,${(0.35+pulse*0.1)*a})`;
+    offBaseCtx.shadowBlur=14;
+    offBaseCtx.fillStyle=`rgba(255,187,0,${(0.72+pulse*0.06)*a})`;
+    offBaseCtx.fill(c.path2d);
+    offBaseCtx.strokeStyle=`rgba(255,187,0,${(0.85+pulse*0.05)*a})`;
+    offBaseCtx.lineWidth=0.8;
+    offBaseCtx.stroke(c.path2d);
+    offBaseCtx.restore();
+  }
+
+  // 2. Texture clipped to land (destination-in mask trick)
+  offTexCtx.clearRect(0,0,w,h);
+  // Draw full texture
+  offTexCtx.drawImage(texCanvas,0,0,w,h);
+  // Clip to land using base layer as alpha mask
+  offTexCtx.globalCompositeOperation="destination-in";
+  offTexCtx.drawImage(offBase,0,0);
+  offTexCtx.globalCompositeOperation="source-over";
+
+  // Composite textured land: stronger than v10 for visibility
+  // Coarse blob pass — very subtle, just slight tonal variation
+  offBaseCtx.save();
+  offBaseCtx.globalCompositeOperation="overlay";
+  offBaseCtx.globalAlpha=0.22;
+  offBaseCtx.drawImage(offTex,0,0);
+  offBaseCtx.restore();
+
+  // Fine grain pass — separate offscreen so we never corrupt offBase
+  offTex2Ctx.clearRect(0,0,w,h);
+  offTex2Ctx.globalCompositeOperation="source-over";
+  offTex2Ctx.drawImage(texFine,0,0,w,h);
+  offTex2Ctx.globalCompositeOperation="destination-in";
+  offTex2Ctx.drawImage(offBase,0,0);   // mask to land
+  offTex2Ctx.globalCompositeOperation="source-over";
+
+  offBaseCtx.save();
+  offBaseCtx.globalCompositeOperation="screen";
+  offBaseCtx.globalAlpha=0.50;
+  offBaseCtx.drawImage(offTex2,0,0);
+  offBaseCtx.restore();
+
+  offBaseCtx.save();
+  offBaseCtx.globalCompositeOperation="overlay";
+  offBaseCtx.globalAlpha=0.42;
+  offBaseCtx.drawImage(offTex2,0,0);
+  offBaseCtx.restore();
+
+  // 3. Green countries
+  for(const c of countries){
+    if(!c.isGreen||(c.alpha<=0&&!c.lit)) continue;
+    const a=c.lit?1:c.alpha;
+    const pulse=Math.sin(ts*c.pulseSpeed+c.pulsePhase);
+    const fillA  =(0.72+pulse*0.07)*a;
+    const strokeA=(0.90+pulse*0.05)*a;
+
+    // Soft outer glow using shadowBlur (no bounding box artifact)
+    offGreenCtx.save();
+    offGreenCtx.shadowColor=`rgba(25,205,155,${(0.55+pulse*0.15)*a})`;
+    offGreenCtx.shadowBlur=28;
+    offGreenCtx.globalAlpha=(0.28+pulse*0.08)*a;
+    offGreenCtx.fillStyle="rgba(25,205,155,0)";
+    offGreenCtx.fill(c.path2d);
+    offGreenCtx.restore();
+
+    offGreenCtx.save();
+    offGreenCtx.shadowColor=`rgba(25,205,155,${(0.45+pulse*0.12)*a})`;
+    offGreenCtx.shadowBlur=22;
+    offGreenCtx.fillStyle="rgba(25,205,155,0)";
+    offGreenCtx.fill(c.path2d);
+    offGreenCtx.restore();
+
+    offGreenCtx.save();
+    offGreenCtx.shadowColor=`rgba(70,240,190,${(0.35+pulse*0.10)*a})`;
+    offGreenCtx.shadowBlur=10;
+    offGreenCtx.fillStyle="rgba(25,205,155,0)";
+    offGreenCtx.fill(c.path2d);
+    offGreenCtx.restore();
+
+    offGreenCtx.save();
+    offGreenCtx.shadowColor=`rgba(180,255,220,${(0.5+pulse*0.15)*a})`;
+    offGreenCtx.shadowBlur=4;
+    offGreenCtx.fillStyle=`rgba(25,205,155,${fillA})`;
+    offGreenCtx.fill(c.path2d);
+    offGreenCtx.restore();
+
+    offGreenCtx.save();
+    offGreenCtx.shadowColor="rgba(25,205,155,0.95)";
+    offGreenCtx.shadowBlur=8;
+    offGreenCtx.strokeStyle=`rgba(25,205,155,${strokeA})`;
+    offGreenCtx.lineWidth=1.0;
+    offGreenCtx.stroke(c.path2d);
+    offGreenCtx.restore();
+  }
+
+  // 3b. Hover stroke — draw on offGreen so it composites with glow
+  if(hoveredCountry && hoveredCountry.isGreen && hoveredCountry.path2d){
+    const hc = hoveredCountry;
+    const pulse = Math.sin(ts * 0.003);  // slow independent pulse for hover
+    offGreenCtx.save();
+    offGreenCtx.shadowColor = "rgba(25,205,155,0.95)";
+    offGreenCtx.shadowBlur  = 18;
+    offGreenCtx.strokeStyle = `rgba(150,255,210,${0.70+pulse*0.20})`;
+    offGreenCtx.lineWidth   = 1.8;
+    offGreenCtx.stroke(hc.path2d);
+    offGreenCtx.restore();
+    // Extra tight glow pass
+    offGreenCtx.save();
+    offGreenCtx.shadowColor = "rgba(180,255,230,0.8)";
+    offGreenCtx.shadowBlur  = 6;
+    offGreenCtx.strokeStyle = `rgba(200,255,225,${0.50+pulse*0.15})`;
+    offGreenCtx.lineWidth   = 0.8;
+    offGreenCtx.stroke(hc.path2d);
+    offGreenCtx.restore();
+  } else if(hoveredCountry && !hoveredCountry.isGreen && hoveredCountry.path2d){
+    // Non-committed country: subtle white stroke on hover
+    offBaseCtx.save();
+    offBaseCtx.shadowColor = "rgba(255,255,255,0.25)";
+    offBaseCtx.shadowBlur  = 8;
+    offBaseCtx.strokeStyle = "rgba(255,255,255,0.22)";
+    offBaseCtx.lineWidth   = 1.2;
+    offBaseCtx.stroke(hoveredCountry.path2d);
+    offBaseCtx.restore();
+  }
+
+  // 4. Composite base + green
+  ctx.clearRect(0,0,w,h);
+  ctx.drawImage(offBase,0,0);
+  ctx.drawImage(offGreen,0,0);
+
+  // 5. Trail — advance age, draw fading particles, then remove dead ones
+  ctx.save();
+  ctx.globalCompositeOperation="screen";
+  for(let i=trail.length-1;i>=0;i--){
+    const p=trail[i];
+    p.age++;
+    if(p.age>p.maxAge){ trail.splice(i,1); continue; }
+    const life=1-(p.age/p.maxAge);        // 1→0 as it ages
+    const eased=life*life;                // ease out — fades quickly at end
+    const alpha=eased*0.144;
+    const r=p.r*(1+p.age*0.04);          // bloom outward slightly
+
+    const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
+    grad.addColorStop(0, `rgba(160,255,210,${alpha*1.4})`);
+    grad.addColorStop(0.4,`rgba(25,205,155,${alpha})`);
+    grad.addColorStop(1,  "rgba(25,205,155,0)");
+    ctx.fillStyle=grad;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,r,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ─── Transitions ───────────────────────────────────────────────
+function addTrans(c,from,to,dur){
+  activeTransitions=activeTransitions.filter(t=>t.c!==c);
+  activeTransitions.push({c,from,to,start:performance.now(),dur});
+}
+function tickTrans(ts){
+  for(let i=activeTransitions.length-1;i>=0;i--){
+    const t=activeTransitions[i];
+    const p=Math.min((ts-t.start)/t.dur,1);
+    const e=p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    t.c.alpha=t.from+(t.to-t.from)*e;
+    if(p>=1){
+      t.c.alpha=t.to;
+      if(t.to===1)t.c.lit=true;
+      if(t.to===0)t.c.lit=false;
+      activeTransitions.splice(i,1);
+    }
+  }
+}
+
+// ─── Sequence ──────────────────────────────────────────────────
+let seqTimer=null;
+function runSequence(){
+  if(seqTimer)clearTimeout(seqTimer);
+  activeTransitions=[];
+  const greens=countries.filter(c=>c.isGreen||c.isRed||c.isYellow);
+  greens.forEach(c=>{c.lit=false;c.alpha=0;});
+  document.getElementById("cnt").textContent="0";
+  const mapPriority=["Colombia","Netherlands"];
+  const part1=mapPriority.map(n=>greens.find(c=>c.name===n||(NAME_MAP[n]&&NAME_MAP[n]===c.name))).filter(Boolean);
+  const part2=[...greens].filter(c=>!mapPriority.includes(c.name)).sort(()=>Math.random()-0.5);
+  const greenIslands=ISLAND_NATIONS.filter(n=>isIslandGreen(n));
+  const totalIslands=greenIslands.length;
+  let i=0,lit=0,phase="part1";
+
+  function lightIslands(afterDone){
+    const allDots=Array.from(document.querySelectorAll('.idot'));
+    const tuvaluDot=allDots.filter(el=>el.dataset.name==="Tuvalu");
+    const otherDots=allDots.filter(el=>el.dataset.name!=="Tuvalu").sort(()=>Math.random()-0.5);
+    const isls=[...tuvaluDot,...otherDots];
+    let ii=0,ci=0;
+    function lightOne(){
+      if(ci>=totalIslands){afterDone(isls);return;}
+      if(ii<isls.length){isls[ii].style.transition='opacity 0.9s ease-in-out';isls[ii].style.opacity='1';ii++;}
+      ci++;document.getElementById('cnt').textContent=lit+ci;
+      seqTimer=setTimeout(lightOne,165+Math.random()*45);
+    }
+    lightOne();
+  }
+
+  function lightNext(){
+    if(phase==="part1"){
+      if(i<part1.length){
+        addTrans(part1[i],0,1,1000);
+        if(!part1[i].nocount)lit++;
+        document.getElementById("cnt").textContent=lit;
+        // Show city marker when Colombia (first) lights up
+        if(i===0) showCityMarker("Santa Marta");
+        i++;seqTimer=setTimeout(lightNext,165+Math.random()*45);
+      } else {
+        phase="islands";i=0;
+        lightIslands(isls=>{
+          lit+=totalIslands;phase="part2";lightNext._isls=isls;
+          seqTimer=setTimeout(lightNext,165+Math.random()*45);
+        });
+      }
+    } else if(phase==="part2"){
+      if(i>=part2.length){seqTimer=setTimeout(()=>fadeAll([...part1,...part2],lightNext._isls),5000);return;}
+      addTrans(part2[i],0,1,1000);
+      if(!part2[i].nocount)lit++;
+      document.getElementById("cnt").textContent=lit;
+      i++;seqTimer=setTimeout(lightNext,165+Math.random()*45);
+    }
+  }
+
+  function fadeAll(sh,isls){
+    hideCityMarkers();
+    if(isls)isls.forEach(el=>{el.style.transition='opacity 0.6s';el.style.opacity='0';});
+    const s=[...sh].sort(()=>Math.random()-0.5);let ri=0;
+    function fadeOne(){
+      if(ri>=s.length){seqTimer=setTimeout(runSequence,600);return;}
+      addTrans(s[ri],1,0,900);ri++;seqTimer=setTimeout(fadeOne,28);
+    }
+    document.getElementById("cnt").textContent="0";fadeOne();
+  }
+  seqTimer=setTimeout(lightNext,200);
+}
+
+
+// Special city markers (same ring style as Tuvalu)
+const CITY_MARKERS=[
+  {name:"Santa Marta", lon:-74.2, lat:11.24, label:"Santa Marta"},
+];
+
+const SMALL_ISLANDS=[
+  {name:"Kiribati",           lon:173.0, lat:1.3},
+  {name:"Maldives",           lon:73.5,  lat:3.2},
+  {name:"Marshall Islands",   lon:171.2, lat:7.1},
+  {name:"Micronesia",         lon:158.2, lat:6.9},
+  {name:"Palau",              lon:134.5, lat:7.5},
+  {name:"Saint Kitts and Nevis",lon:-62.8,lat:17.3},
+  {name:"Saint Lucia",        lon:-61.0, lat:13.9},
+  {name:"Singapore",          lon:103.8, lat:1.35},
+  {name:"Tuvalu",             lon:179.2, lat:-7.5},
+  {name:"Vatican",            lon:12.45, lat:41.9},
+  {name:"Antigua and Barbuda",lon:-61.8, lat:17.1},
+];
+
+function updateCityMarkers(){
+  if(!proj) return;
+  const svg=document.getElementById("cityMarkers");
+  svg.querySelectorAll(".cmarker").forEach(el=>el.remove());
+  for(const city of CITY_MARKERS){
+    const pos=proj([city.lon,city.lat]);
+    if(!pos) continue;
+    const px=pos[0],py=pos[1];
+    if(px<-50||px>w+50||py<-50||py>h+50) continue;
+    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.setAttribute("class","cmarker");
+    g.setAttribute("transform",`translate(${px},${py})`);
+    g.setAttribute("opacity","0");
+    g.dataset.name=city.name;
+    // Center dot
+    const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    dot.setAttribute("r","1.5");dot.setAttribute("fill","rgba(25,205,155,1)");
+    g.appendChild(dot);
+    // Pulsing ring
+    const ring=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    ring.setAttribute("r","8");ring.setAttribute("fill","none");
+    ring.setAttribute("stroke","#19cd9b");ring.setAttribute("stroke-width","1.5");
+    ring.setAttribute("style","animation:tpulse 2s ease-in-out infinite;");
+    g.appendChild(ring);
+    // Label to the right
+    const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
+    lbl.setAttribute("x","12");lbl.setAttribute("y","4");
+    lbl.setAttribute("fill","rgba(255,255,255,0.88)");
+    lbl.setAttribute("font-family","Roboto,Arial,sans-serif");
+    lbl.setAttribute("font-size","10");lbl.setAttribute("font-weight","700");
+    lbl.textContent=city.label||city.name;
+    g.appendChild(lbl);
+    svg.appendChild(g);
+  }
+}
+
+function updateCityMarkersOnResize(){
+  updateCityMarkers();
+  // Keep visible state after resize
+  document.querySelectorAll('.cmarker').forEach(el=>{
+    if(el._visible) el.style.opacity='1';
+  });
+}
+
+function showCityMarker(name){
+  document.querySelectorAll('.cmarker').forEach(el=>{
+    if(el.dataset.name===name){
+      el.style.transition='opacity 0.9s ease-in-out';
+      el.style.opacity='1';
+      el._visible=true;
+    }
+  });
+}
+
+function hideCityMarkers(){
+  document.querySelectorAll('.cmarker').forEach(el=>{
+    el.style.transition='opacity 0.6s';
+    el.style.opacity='0';
+    el._visible=false;
+  });
+}
+
+function updateIslandSVG(){
+  if(!proj) return;
+  const svg=document.getElementById("islands");
+  svg.querySelectorAll(".idot").forEach(el=>el.remove());
+  for(const isl of SMALL_ISLANDS){
+    if(!isIslandGreen(isl.name)) continue;
+    const pos=proj([isl.lon,isl.lat]);
+    if(!pos) continue;
+    const px=pos[0],py=pos[1];
+    if(px<-50||px>w+50||py<-50||py>h+50) continue;
+    const isTuvalu=isl.name==="Tuvalu";
+    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.setAttribute("class","idot");g.setAttribute("transform",`translate(${px},${py})`);
+    g.setAttribute("opacity","0");g.dataset.name=isl.name;
+    const gblur=document.createElementNS("http://www.w3.org/2000/svg","g");
+    const gradId="ig"+Math.random().toString(36).slice(2);
+    let defsEl=svg.querySelector("defs");
+    if(!defsEl){defsEl=document.createElementNS("http://www.w3.org/2000/svg","defs");svg.prepend(defsEl);}
+    const rg=document.createElementNS("http://www.w3.org/2000/svg","radialGradient");
+    rg.setAttribute("id",gradId);rg.setAttribute("cx","50%");rg.setAttribute("cy","50%");rg.setAttribute("r","50%");
+    [[0,"0.7"],[45,"0.25"],[100,"0"]].forEach(([o,op])=>{
+      const s=document.createElementNS("http://www.w3.org/2000/svg","stop");
+      s.setAttribute("offset",o+"%");s.setAttribute("stop-color","#19cd9b");s.setAttribute("stop-opacity",op);rg.appendChild(s);
+    });
+    defsEl.appendChild(rg);
+    const blob=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    blob.setAttribute("r","16");blob.setAttribute("fill",`url(#${gradId})`);blob.setAttribute("class","idot-outer");
+    gblur.appendChild(blob);g.appendChild(gblur);
+    const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    dot.setAttribute("r","1");dot.setAttribute("fill","rgba(25,205,155,1)");g.appendChild(dot);
+    if(isTuvalu){
+      const ring=document.createElementNS("http://www.w3.org/2000/svg","circle");
+      ring.setAttribute("r","8");ring.setAttribute("fill","none");
+      ring.setAttribute("stroke","#19cd9b");ring.setAttribute("stroke-width","1.5");
+      ring.setAttribute("style","animation:tpulse 2s ease-in-out infinite;");g.appendChild(ring);
+      const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
+      lbl.setAttribute("x","-12");lbl.setAttribute("y","4");lbl.setAttribute("text-anchor","end");
+      lbl.setAttribute("fill","rgba(255,255,255,0.88)");lbl.setAttribute("font-family","Roboto,Arial,sans-serif");
+      lbl.setAttribute("font-size","10");lbl.setAttribute("font-weight","700");
+      lbl.textContent="Tuvalu";g.appendChild(lbl);
+    }
+    svg.appendChild(g);
+  }
+}
+
+function loop(ts){
+  try{
+    tickTrans(ts);
+    drawFrame(ts);
+  } catch(e){
+    console.error("[Map] drawFrame error:", e);
+  }
+  requestAnimationFrame(loop);
+}
+
+loadAndInit();
+
+let resizeTimer;
+window.addEventListener("resize",()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(()=>{resize();buildPaths();updateIslandSVG();updateCityMarkersOnResize();setTimeout(runSequence,200);},150);
+});
+</script>

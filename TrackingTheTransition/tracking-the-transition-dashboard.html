@@ -410,7 +410,7 @@ function drawFrame(ts){
   // 1. Base countries
   for(const c of countries){
     if(c.isGreen&&c.lit) continue;
-    if(c.isRed||c.isYellow) continue; // drawn separately below
+    if((c.isRed||c.isYellow)&&(c.alpha>0||c.lit)) continue; // drawn separately below
     const a=c.alpha;
     const r=Math.round(19+(25-19)*a);
     const g=Math.round(23+(205-23)*a);

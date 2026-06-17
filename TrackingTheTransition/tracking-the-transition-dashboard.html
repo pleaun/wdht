@@ -1489,16 +1489,27 @@ async function initNewsPool(){
 }
 
 async function getCountryNews(countryName){
-  if(!_rssPool) initNewsPool(); // safety: start pool if not yet started
+  if(!_rssPool) initNewsPool();
   const aliases = [countryName, ...(ALIASES[countryName]||[])];
   const countryRe = new RegExp(aliases.map(a=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'), 'i');
-  const [rssAll, apiAll] = await Promise.all([_rssPool, _apiPool]);
-  const all = [
-    ...rssAll.filter(i=>countryRe.test(i.title)||countryRe.test(i.snippet)),
-    ...apiAll.filter(i=>countryRe.test(i.title)||countryRe.test(i.snippet)),
-  ];
+
+  // Fetch RSS pool + Worker in parallel
+  const workerPromise = (async()=>{
+    if(!WORKER_URL) return [];
+    try{
+      const res = await _fetchT(`${WORKER_URL}/news?country=${encodeURIComponent(countryName)}&max=100`);
+      if(!res.ok) return [];
+      const d = await res.json();
+      return d.articles||[];
+    }catch(e){ return []; }
+  })();
+
+  const [rssAll, workerArticles] = await Promise.all([_rssPool, workerPromise]);
+  const rssCountry = rssAll.filter(i=>countryRe.test(i.title)||countryRe.test(i.snippet));
+
   const seen = new Set();
-  return all.filter(item=>{
+  // Worker articles first (include history), then RSS
+  return [...workerArticles, ...rssCountry].filter(item=>{
     const key = item.title.slice(0,50).toLowerCase();
     if(seen.has(key)) return false;
     seen.add(key); return true;

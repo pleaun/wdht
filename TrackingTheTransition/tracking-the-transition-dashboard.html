@@ -1479,22 +1479,8 @@ async function initNewsPool(){
     }catch(e){ return []; }
   })).then(results=>results.flatMap(r=>r.status==='fulfilled'?r.value:[]));
 
-  // ONE NewsData.io call — broad climate query, 10 latest articles
-  _apiPool = (async ()=>{
-    if(!NEWSDATA_KEY) return [];
-    try{
-      const q = encodeURIComponent('climate OR "renewable energy" OR "fossil fuels" OR emissions OR "clean energy" OR "energy transition" OR "solar power" OR "wind power"');
-      const url = `https://newsdata.io/api/1/news?apikey=${NEWSDATA_KEY}&q=${q}&language=en&size=10`;
-      const res = await _fetchT(url);
-      if(!res.ok) return [];
-      const d = await res.json();
-      return (d.results||[]).map(r=>({
-        title:r.title||'', link:r.link||'',
-        pubDate:r.pubDate||'', source:r.source_id||'',
-        snippet:(r.description||'').slice(0,300)
-      })).filter(r=>r.title&&r.link);
-    }catch(e){ return []; }
-  })();
+  // Worker pool — populated lazily per country (not on init)
+  _apiPool = Promise.resolve([]); // placeholder; worker called in getCountryNews
 
   // Persist to localStorage after both resolve
   Promise.all([_rssPool, _apiPool]).then(([rss, api])=>{

@@ -359,8 +359,8 @@ let _TOPO = null;
 let _greenSet = null;
 let _statusMap = {};
 
-// Register free at newsdata.io → add key here for country-specific climate news
-const NEWSDATA_KEY = "pub_527deb0fd4174adb8bf13ab405795c96";
+// Cloudflare Worker URL — set after deploying climate-news-worker
+const WORKER_URL = ""; // e.g. "https://climate-news.your-subdomain.workers.dev"
 
 const SHEET_URL ="https://docs.google.com/spreadsheets/d/e/2PACX-1vR0b53-bH6EW2fJnlELIFMnlBz8qwJnnmylQFEkJUpIHp97gKIEv0IlE8FfSwZG8_nsAcAWI4bZ7NvU/pub?gid=636099964&single=true&output=csv";
 const COPY_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0b53-bH6EW2fJnlELIFMnlBz8qwJnnmylQFEkJUpIHp97gKIEv0IlE8FfSwZG8_nsAcAWI4bZ7NvU/pub?gid=1536498573&single=true&output=csv";

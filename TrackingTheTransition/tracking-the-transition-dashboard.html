@@ -1405,21 +1405,20 @@ async function fetchCountryNews(countryName){
   };
 
   const ALIASES = {
-    'United Kingdom':['UK','Britain','British','England','Scotland','Wales'],
+    'United Kingdom':['UK','Britain','British'],
     'United States':['US','USA','America','American'],
     'South Korea':['Korea','Korean'],
-    'North Korea':['Korea','Korean'],
     'Czech Republic':['Czechia'],
-    'UAE':['Emirates','Abu Dhabi','Dubai'],
+    'UAE':['Emirates','Dubai'],
     'New Zealand':['Aotearoa'],
   };
   const aliases = [countryName, ...(ALIASES[countryName]||[])];
-  const countryRe = new RegExp(
-    aliases.map(a=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'), 'i'
-  );
+  const countryRe = new RegExp(aliases.map(a=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'), 'i');
+  const CLIMATE_RE = /climat|fossil|renew|emiss|energy.transit|coal\b|carbon|net.zero|nuclear|solar|wind.pow|decarbon|clean energy|oil.gas/i;
+  const GOOD_SECTIONS = new Set(['environment','science','business','world','technology','money']);
 
-  // Climate/energy RSS feeds — fetched via allorigins proxy, parsed as XML
-  const FEEDS = [
+  // ── 1. rss2json climate feeds (verified working) ──
+  const RSS_FEEDS = [
     {url:'https://www.theguardian.com/environment/rss',                    source:'The Guardian'},
     {url:'https://feeds.bbci.co.uk/news/science_and_environment/rss.xml', source:'BBC News'},
     {url:'https://www.carbonbrief.org/feed/',                              source:'Carbon Brief'},
@@ -1428,42 +1427,53 @@ async function fetchCountryNews(countryName){
     {url:'https://cleantechnica.com/feed/',                                source:'CleanTechnica'},
     {url:'https://oilprice.com/rss/main',                                  source:'OilPrice.com'},
   ];
-
-  async function fetchFeed(feed){
-    const res = await fetchT(`https://api.allorigins.win/get?url=${encodeURIComponent(feed.url)}`);
+  const rssResults = await Promise.allSettled(RSS_FEEDS.map(async feed=>{
+    const res = await fetchT(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`);
     if(!res.ok) return [];
-    const j = await res.json();
-    if(!j.contents || j.contents.length < 300) return [];
-    const xml = new DOMParser().parseFromString(j.contents, 'text/xml');
-    if(xml.querySelector('parsererror')) return [];
-    return [...xml.querySelectorAll('item')].map(el=>{
-      const title   = el.querySelector('title')?.textContent?.trim()||'';
-      const link    = el.querySelector('link')?.textContent?.trim()
-                   || el.querySelector('guid')?.textContent?.trim()||'';
-      const pubDate = el.querySelector('pubDate')?.textContent?.trim()||'';
-      // try full content first, fall back to description
-      const rawDesc = el.querySelector('encoded')?.textContent
-                   || el.querySelector('description')?.textContent||'';
-      const snippet = rawDesc.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,400);
-      return {title, link, pubDate, source:feed.source, snippet};
-    }).filter(i=>i.title&&i.link);
-  }
+    const d = await res.json();
+    if(d.status!=='ok'||!d.items?.length) return [];
+    return d.items.map(i=>({
+      title:(i.title||'').trim(), link:i.link||i.guid||'',
+      pubDate:i.pubDate||'', source:feed.source,
+      snippet:(i.description||'').replace(/<[^>]+>/g,' ').slice(0,500)
+    })).filter(i=>i.title&&i.link);
+  }));
+  const rssAll = rssResults.flatMap(r=>r.status==='fulfilled'?r.value:[]);
+  const rssCountry = rssAll.filter(i=>countryRe.test(i.title)||countryRe.test(i.snippet));
 
-  const results = await Promise.allSettled(FEEDS.map(fetchFeed));
-  const all = results.flatMap(r=>r.status==='fulfilled'?r.value:[]);
+  // ── 2. Guardian parallel queries: country + specific climate terms ──
+  const CLIMATE_QUERIES = ['climate','renewable+energy','fossil+fuel','nuclear+energy','carbon+emissions'];
+  const guardianResults = await Promise.allSettled(CLIMATE_QUERIES.map(async kw=>{
+    const q = encodeURIComponent(countryName) + '+' + kw;
+    const res = await fetchT(`https://content.guardianapis.com/search?q=${q}&api-key=test&page-size=10&order-by=newest`);
+    if(!res.ok) return [];
+    const d = await res.json();
+    return (d?.response?.results||[])
+      .filter(r=>GOOD_SECTIONS.has(r.sectionId) && CLIMATE_RE.test(r.webTitle))
+      .map(r=>({title:r.webTitle, link:r.webUrl, pubDate:r.webPublicationDate, source:'The Guardian', snippet:''}));
+  }));
+  const guardianCountry = guardianResults.flatMap(r=>r.status==='fulfilled'?r.value:[]);
 
-  // Keep only items mentioning the country in title or description snippet
-  const filtered = all.filter(i=>countryRe.test(i.title)||countryRe.test(i.snippet));
-
-  // Deduplicate by title prefix
+  // ── Merge, deduplicate, sort ──
   const seen = new Set();
-  const deduped = filtered.filter(item=>{
-    const key = item.title.slice(0,55).toLowerCase();
+  const deduped = [...rssCountry, ...guardianCountry].filter(item=>{
+    const key = item.title.slice(0,50).toLowerCase();
     if(seen.has(key)) return false;
     seen.add(key); return true;
   });
-
   deduped.sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
+
+  // ── Fallback: global climate news if <3 country-specific results ──
+  if(deduped.length < 3){
+    const globalSeen = new Set(deduped.map(i=>i.title.slice(0,50).toLowerCase()));
+    const globalFallback = rssAll.filter(i=>{
+      if(!CLIMATE_RE.test(i.title)) return false;
+      const key=i.title.slice(0,50).toLowerCase();
+      if(globalSeen.has(key)) return false;
+      globalSeen.add(key); return true;
+    }).slice(0,8).map(i=>({...i, isGlobal:true}));
+    return [...deduped, ...globalFallback];
+  }
   return deduped;
 }
 

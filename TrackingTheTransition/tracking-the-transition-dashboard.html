@@ -1391,32 +1391,8 @@ function openPanel(name){
   document.getElementById("panel-body").scrollTop=0;
 
   const newsEl=document.getElementById("panel-news");
-  const cached = _newsCache.get(dname);
-  if(cached && cached !== null){
-    renderNews(cached, newsEl);
-  } else if(cached === null){
-    // still loading in background — poll briefly
-    newsEl.innerHTML='<div id="panel-news-loading">Loading…</div>';
-    const poll = setInterval(()=>{
-      const v = _newsCache.get(dname);
-      if(v !== null && v !== undefined){ clearInterval(poll); renderNews(v, newsEl); }
-    }, 300);
-    setTimeout(()=>clearInterval(poll), 15000);
-  } else {
-    // Check localStorage before hitting the API
-    const lsCached = lsNewsGet(dname);
-    if(lsCached !== null){
-      _newsCache.set(dname, lsCached);
-      renderNews(lsCached, newsEl);
-    } else {
-      newsEl.innerHTML='<div id="panel-news-loading">Loading…</div>';
-      fetchCountryNews(dname).then(items=>{
-        _newsCache.set(dname, items);
-        lsNewsSet(dname, items);
-        renderNews(items, newsEl);
-      });
-    }
-  }
+  newsEl.innerHTML='<div id="panel-news-loading" style="opacity:0.45;font-size:12px;padding:8px 0;">Loading…</div>';
+  getCountryNews(dname).then(items=>renderNews(items, newsEl));
   selectedCountry = countries.find(c=>c.name===name)||{name,path2d:null,isGreen:false,isRed:false,isYellow:false};
 }
 

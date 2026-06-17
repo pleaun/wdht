@@ -1523,22 +1523,30 @@ async function fetchCountryNews(countryName){
   const rssAll = rssResults.flatMap(r=>r.status==='fulfilled'?r.value:[]);
   const rssCountry = rssAll.filter(i=>countryRe.test(i.title)||countryRe.test(i.snippet));
 
-  // ── 2. Guardian parallel queries: country + specific climate terms ──
-  const CLIMATE_QUERIES = ['climate','renewable+energy','fossil+fuel','nuclear+energy','carbon+emissions'];
-  const guardianResults = await Promise.allSettled(CLIMATE_QUERIES.map(async kw=>{
-    const q = encodeURIComponent(countryName) + '+' + kw;
-    const res = await fetchT(`https://content.guardianapis.com/search?q=${q}&api-key=test&page-size=10&order-by=newest`);
-    if(!res.ok) return [];
-    const d = await res.json();
-    return (d?.response?.results||[])
-      .filter(r=>GOOD_SECTIONS.has(r.sectionId) && CLIMATE_RE.test(r.webTitle))
-      .map(r=>({title:r.webTitle, link:r.webUrl, pubDate:r.webPublicationDate, source:'The Guardian', snippet:''}));
-  }));
-  const guardianCountry = guardianResults.flatMap(r=>r.status==='fulfilled'?r.value:[]);
+  // ── 2. NewsData.io — country + environment category (requires free key) ──
+  let apiCountry = [];
+  if(NEWSDATA_KEY){
+    const iso2 = ISO2[countryName] || '';
+    if(iso2){
+      try{
+        const q = encodeURIComponent('climate OR energy OR fossil OR renewable OR emissions OR nuclear');
+        const url = `https://newsdata.io/api/1/news?apikey=${NEWSDATA_KEY}&country=${iso2}&category=environment,science,business&q=${q}&language=en&size=10`;
+        const res = await fetchT(url);
+        if(res.ok){
+          const d = await res.json();
+          apiCountry = (d.results||[]).map(r=>({
+            title: r.title||'', link: r.link||'',
+            pubDate: r.pubDate||'', source: r.source_id||'',
+            snippet: (r.description||'').slice(0,300)
+          })).filter(r=>r.title&&r.link);
+        }
+      }catch(e){}
+    }
+  }
 
   // ── Merge, deduplicate, sort ──
   const seen = new Set();
-  const deduped = [...rssCountry, ...guardianCountry].filter(item=>{
+  const deduped = [...rssCountry, ...apiCountry].filter(item=>{
     const key = item.title.slice(0,50).toLowerCase();
     if(seen.has(key)) return false;
     seen.add(key); return true;

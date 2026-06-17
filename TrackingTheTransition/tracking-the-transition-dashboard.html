@@ -1396,6 +1396,24 @@ function openPanel(name){
 let _newsAllItems = [];
 let _newsShown = 0;
 const NEWS_PAGE = 10;
+const _newsCache = new Map(); // country name → items array
+
+// Pre-load news for a list of countries in background (max 2 concurrent)
+async function preloadNews(countryNames){
+  const queue = [...countryNames];
+  const run = async () => {
+    while(queue.length){
+      const name = queue.shift();
+      if(!_newsCache.has(name)){
+        _newsCache.set(name, null); // mark as in-progress
+        const items = await fetchCountryNews(name).catch(()=>[]);
+        _newsCache.set(name, items);
+      }
+    }
+  };
+  // 2 concurrent workers
+  await Promise.allSettled([run(), run()]);
+}
 
 async function fetchCountryNews(countryName){
   const fetchT = (url, ms=10000) => {

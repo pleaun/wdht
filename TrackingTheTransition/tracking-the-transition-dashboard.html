@@ -1389,8 +1389,21 @@ function openPanel(name){
   document.getElementById("panel-body").scrollTop=0;
 
   const newsEl=document.getElementById("panel-news");
-  newsEl.innerHTML='<div id="panel-news-loading">Loading…</div>';
-  fetchCountryNews(dname).then(items=>renderNews(items,newsEl));
+  const cached = _newsCache.get(dname);
+  if(cached && cached !== null){
+    renderNews(cached, newsEl);
+  } else if(cached === null){
+    // still loading in background — poll briefly
+    newsEl.innerHTML='<div id="panel-news-loading">Loading…</div>';
+    const poll = setInterval(()=>{
+      const v = _newsCache.get(dname);
+      if(v !== null && v !== undefined){ clearInterval(poll); renderNews(v, newsEl); }
+    }, 300);
+    setTimeout(()=>clearInterval(poll), 15000);
+  } else {
+    newsEl.innerHTML='<div id="panel-news-loading">Loading…</div>';
+    fetchCountryNews(dname).then(items=>{ _newsCache.set(dname,items); renderNews(items,newsEl); });
+  }
   selectedCountry = countries.find(c=>c.name===name)||{name,path2d:null,isGreen:false,isRed:false,isYellow:false};
 }
 

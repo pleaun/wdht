@@ -1417,9 +1417,32 @@ let _newsShown = 0;
 const NEWS_PAGE = 10;
 const _newsCache = new Map(); // country name → items array
 
+// localStorage cache helpers (4-hour TTL)
+const NEWS_TTL = 4 * 60 * 60 * 1000;
+function lsNewsGet(countryName){
+  try{
+    const raw = localStorage.getItem('news_v1_' + countryName);
+    if(!raw) return null;
+    const {ts, items} = JSON.parse(raw);
+    if(Date.now() - ts > NEWS_TTL) return null;
+    return items;
+  }catch(e){ return null; }
+}
+function lsNewsSet(countryName, items){
+  try{ localStorage.setItem('news_v1_' + countryName, JSON.stringify({ts:Date.now(), items})); }catch(e){}
+}
+
 // Pre-load news for a list of countries in background (max 2 concurrent)
 async function preloadNews(countryNames){
-  const queue = [...countryNames];
+  // Seed in-memory cache from localStorage first (free, instant)
+  countryNames.forEach(name=>{
+    if(!_newsCache.has(name)){
+      const cached = lsNewsGet(name);
+      if(cached !== null) _newsCache.set(name, cached);
+    }
+  });
+  // Only fetch countries not yet cached
+  const queue = countryNames.filter(n=>!_newsCache.has(n));
   const run = async () => {
     while(queue.length){
       const name = queue.shift();
@@ -1427,6 +1450,7 @@ async function preloadNews(countryNames){
         _newsCache.set(name, null); // mark as in-progress
         const items = await fetchCountryNews(name).catch(()=>[]);
         _newsCache.set(name, items);
+        lsNewsSet(name, items);
       }
     }
   };

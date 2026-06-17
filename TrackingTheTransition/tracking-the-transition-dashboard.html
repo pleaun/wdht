@@ -1491,10 +1491,19 @@ function renderNews(items, container){
 function appendNewsItems(container){
   const list = container.querySelector('#news-list') || container;
   const batch = _newsAllItems.slice(_newsShown, _newsShown + NEWS_PAGE);
-  // Track unique sources so we only show source when there are multiple
   const allSources = new Set(_newsAllItems.map(i=>i.source).filter(Boolean));
   const showSource = allSources.size > 1;
+  let shownGlobalHeader = !!container.querySelector('#news-global-header');
   batch.forEach(item=>{
+    // Insert "Global climate news" divider before first fallback item
+    if(item.isGlobal && !shownGlobalHeader){
+      shownGlobalHeader = true;
+      const hdr = document.createElement('div');
+      hdr.id = 'news-global-header';
+      hdr.style.cssText = 'font-size:9px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:rgba(102,206,240,0.45);padding:14px 0 6px;border-top:1px solid rgba(255,255,255,0.06);margin-top:6px;';
+      hdr.textContent = 'Global climate news';
+      list.appendChild(hdr);
+    }
     const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('en',{month:'short',day:'numeric'}) : '';
     const src = showSource ? (item.source||'') : '';
     const meta = [src, date].filter(Boolean).join(' · ');

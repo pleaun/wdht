@@ -483,8 +483,26 @@ async function fetchSheet(){
         cetp:  parts[13]||"",
         taff:  parts[15]||"",
         ndc:   parts[17]||"",
-        fossilFree: parts[19]||"",
-        change3yr:  parts[20]||"",
+        ndcNote: parts[18]||"",
+        // Fossil fuel production (cols 21-30)
+        oilProdShare:  parts[21]||"", oilProdCagr:   parts[22]||"",
+        coalProdShare: parts[23]||"", coalProdCagr:  parts[24]||"",
+        gasProdShare:  parts[25]||"", gasProdCagr:   parts[26]||"",
+        newLicenses:   parts[27]||"", newLicensesNote: parts[28]||"",
+        sanctioned:    parts[29]||"",
+        // Fossil fuel consumption (cols 31-36)
+        oilConsShare:  parts[31]||"", oilConsGrowth:  parts[32]||"",
+        coalConsShare: parts[33]||"", coalConsGrowth: parts[34]||"",
+        gasConsShare:  parts[35]||"", gasConsGrowth:  parts[36]||"",
+        // Energy system (cols 37-44)
+        fossilFree:    parts[37]||"",
+        fossilFreeChange: parts[38]||"",
+        gridIntensity: parts[39]||"",
+        gridTrend:     parts[40]||"",
+        subsidies:     parts[41]||"",
+        subsidiesTrend:parts[42]||"",
+        carbonPrice:   parts[43]||"",
+        carbonRating:  parts[44]||"",
       };
     });
     _greenSet = new Set(Object.entries(_statusMap).filter(([,s])=>s==="green").map(([n])=>n));

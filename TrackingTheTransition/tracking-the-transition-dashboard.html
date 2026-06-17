@@ -1404,8 +1404,19 @@ function openPanel(name){
     }, 300);
     setTimeout(()=>clearInterval(poll), 15000);
   } else {
-    newsEl.innerHTML='<div id="panel-news-loading">Loading…</div>';
-    fetchCountryNews(dname).then(items=>{ _newsCache.set(dname,items); renderNews(items,newsEl); });
+    // Check localStorage before hitting the API
+    const lsCached = lsNewsGet(dname);
+    if(lsCached !== null){
+      _newsCache.set(dname, lsCached);
+      renderNews(lsCached, newsEl);
+    } else {
+      newsEl.innerHTML='<div id="panel-news-loading">Loading…</div>';
+      fetchCountryNews(dname).then(items=>{
+        _newsCache.set(dname, items);
+        lsNewsSet(dname, items);
+        renderNews(items, newsEl);
+      });
+    }
   }
   selectedCountry = countries.find(c=>c.name===name)||{name,path2d:null,isGreen:false,isRed:false,isYellow:false};
 }

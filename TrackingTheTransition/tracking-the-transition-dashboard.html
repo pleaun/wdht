@@ -1437,9 +1437,10 @@ function openPanel(name){
   };
   const pct = v => v ? parseFloat(v).toFixed(2).replace(/\.?0+$/,'')+'%' : '—';
   const cagr = v => {
-    if(!v||v==='N/A') return '';
+    if(!v||v==='N/A'||v==='') return '';
     const n = parseFloat(v);
-    return ` <span class="${n<0?'trend-down':'trend-up'}" style="font-size:11px">${n>=0?'+':''}${(n*100).toFixed(1)}% p.a.</span>`;
+    if(isNaN(n)) return '';
+    return ` <span class="${n<0?'trend-down':'trend-up'}" style="font-size:11px">${n>=0?'+':''}${n.toFixed(1)}% p.a.</span>`;
   };
 
   const energyRows = [];

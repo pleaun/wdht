@@ -486,6 +486,9 @@ async function fetchSheet(){
     });
     _greenSet = new Set(Object.entries(_statusMap).filter(([,s])=>s==="green").map(([n])=>n));
     console.log("[Map] Sheet loaded, green:", _greenSet.size);
+    // Pre-load news in background for all coalition countries
+    const greenNames = [..._greenSet];
+    setTimeout(()=>preloadNews(greenNames), 2000);
   } catch(e){
     console.warn("[Map] Sheet failed:", e.message);
   }

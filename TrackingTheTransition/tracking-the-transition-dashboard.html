@@ -1414,7 +1414,7 @@ async function fetchCountryNews(countryName){
   };
   const aliases = [countryName, ...(ALIASES[countryName]||[])];
   const countryRe = new RegExp(aliases.map(a=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'), 'i');
-  const CLIMATE_RE = /climat|fossil|renew|emiss|energy.transit|coal\b|carbon|net.zero|nuclear|solar|wind.pow|decarbon|clean energy|oil.gas/i;
+  const CLIMATE_RE = /climate.(?:change|crisis|action|policy|target|deal|goal|pledge)|fossil.fuel|renew(?:able|ed energy)|carbon.(?:emiss|neutral|credit|capture|tax|offset|budget|price|footprint)|net.zero|energy.transit|clean.energy|wind.(?:power|farm|turbine)|solar.(?:power|panel|energy|farm)|coal.(?:power|plant|mine|phase)|nuclear.(?:power|energy|plant)|decarbon|greenhouse.gas|Paris.(?:agreement|accord|deal)|COP\s?\d+|emissions.target|oil.and.gas|fossil.subsid/i;
   const GOOD_SECTIONS = new Set(['environment','science','business','world','technology','money']);
 
   // ── 1. rss2json climate feeds (verified working) ──

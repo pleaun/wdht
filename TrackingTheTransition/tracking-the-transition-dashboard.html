@@ -1526,17 +1526,6 @@ async function fetchCountryNews(countryName){
   });
   deduped.sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
 
-  // ── Fallback: global climate news if <3 country-specific results ──
-  if(deduped.length < 3){
-    const globalSeen = new Set(deduped.map(i=>i.title.slice(0,50).toLowerCase()));
-    const globalFallback = rssAll.filter(i=>{
-      if(!CLIMATE_RE.test(i.title)) return false;
-      const key=i.title.slice(0,50).toLowerCase();
-      if(globalSeen.has(key)) return false;
-      globalSeen.add(key); return true;
-    }).slice(0,8).map(i=>({...i, isGlobal:true}));
-    return [...deduped, ...globalFallback];
-  }
   return deduped;
 }
 

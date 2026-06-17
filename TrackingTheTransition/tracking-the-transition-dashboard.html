@@ -1457,7 +1457,7 @@ function openPanel(name){
   if(com.coalProdShare) prodCells.push(cell('Coal production', pct(com.coalProdShare)+' of global'+cagr(com.coalProdCagr), ''));
   if(com.gasProdShare)  prodCells.push(cell('Gas production', pct(com.gasProdShare)+' of global'+cagr(com.gasProdCagr), ''));
   if(com.newLicenses)   prodCells.push(cell('New oil & gas licenses', com.newLicenses, com.newLicensesNote||''));
-  if(com.sanctioned)    prodCells.push(cell('Sanctioned projects', com.sanctioned, ''));
+  if(com.sanctioned)    prodCells.push(cellFull('Sanctioned projects', com.sanctioned, ''));
   const prodEl = document.getElementById("panel-production");
   prodEl.innerHTML = prodCells.length ? `<div class="data-grid">${prodCells.join('')}</div>` : '';
   document.getElementById("section-production").style.display = prodCells.length ? '' : 'none';

@@ -1526,22 +1526,23 @@ async function fetchCountryNews(countryName){
   // ── 2. NewsData.io — country + environment category (requires free key) ──
   let apiCountry = [];
   if(NEWSDATA_KEY){
-    const iso2 = ISO2[countryName] || '';
-    if(iso2){
-      try{
-        const q = encodeURIComponent('climate OR energy OR fossil OR renewable OR emissions OR nuclear');
-        const url = `https://newsdata.io/api/1/news?apikey=${NEWSDATA_KEY}&country=${iso2}&category=environment,science,business&q=${q}&language=en&size=10`;
-        const res = await fetchT(url);
-        if(res.ok){
-          const d = await res.json();
-          apiCountry = (d.results||[]).map(r=>({
+    try{
+      // Search for articles ABOUT the country — use name + adjective + climate terms
+      const terms = aliases.slice(0,2).join(' OR '); // e.g. "France OR French"
+      const q = encodeURIComponent(`(${terms}) AND (climate OR energy OR fossil OR renewable OR emissions OR nuclear OR coal OR solar OR wind)`);
+      const url = `https://newsdata.io/api/1/news?apikey=${NEWSDATA_KEY}&q=${q}&language=en&size=10`;
+      const res = await fetchT(url);
+      if(res.ok){
+        const d = await res.json();
+        apiCountry = (d.results||[])
+          .filter(r=> countryRe.test(r.title||'') || countryRe.test(r.description||''))
+          .map(r=>({
             title: r.title||'', link: r.link||'',
             pubDate: r.pubDate||'', source: r.source_id||'',
             snippet: (r.description||'').slice(0,300)
           })).filter(r=>r.title&&r.link);
-        }
-      }catch(e){}
-    }
+      }
+    }catch(e){}
   }
 
   // ── Merge, deduplicate, sort ──

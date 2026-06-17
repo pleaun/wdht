@@ -1437,34 +1437,39 @@ function openPanel(name){
     return ` <span class="${n<0?'trend-down':'trend-up'}" style="font-size:11px">${n>=0?'+':''}${n.toFixed(1)}% p.a.</span>`;
   };
 
-  const energyRows = [];
-  if(com.fossilFree) energyRows.push(`<div class="data-row"><span class="data-label">Fossil-free electricity</span><span class="data-value">${pct(com.fossilFree)}${cagr(com.fossilFreeChange)}</span></div>`);
-  if(com.gridIntensity) energyRows.push(`<div class="data-row"><span class="data-label">Grid carbon intensity</span><span class="data-value">${com.gridIntensity}${trendArrow(com.gridTrend)}</span></div>`);
-  if(com.carbonPrice) energyRows.push(`<div class="data-row"><span class="data-label">Carbon price</span><span class="data-value">€${parseFloat(com.carbonPrice).toFixed(2)}/tCO₂${ratingBadge(com.carbonRating)}</span></div>`);
-  if(com.subsidies) energyRows.push(`<div class="data-row"><span class="data-label">Fossil fuel subsidies</span><span class="data-value">${pct(com.subsidies)} of GDP${trendArrow(com.subsidiesTrend)}</span></div>`);
+  const cell = (label, value, note) =>
+    `<div class="data-cell"><div class="data-label">${label}</div><div class="data-value">${value}</div>${note?`<div class="data-note">${note}</div>`:''}</div>`;
+  const cellFull = (label, value, note) =>
+    `<div class="data-cell-full"><div class="data-label">${label}</div><div class="data-value">${value}</div>${note?`<div class="data-note">${note}</div>`:''}</div>`;
+
+  const energyCells = [];
+  if(com.fossilFree)   energyCells.push(cell('Fossil-free electricity', pct(com.fossilFree)+(com.fossilFreeChange?` <span class="${parseFloat(com.fossilFreeChange)<0?'trend-down':'trend-up'}">${parseFloat(com.fossilFreeChange)>=0?'+':''}${parseFloat(com.fossilFreeChange).toFixed(1)}% p.a.</span>`:''), ''));
+  if(com.gridIntensity) energyCells.push(cell('Grid carbon intensity', com.gridIntensity+trendArrow(com.gridTrend), ''));
+  if(com.carbonPrice)  energyCells.push(cell('Carbon price', `€${parseFloat(com.carbonPrice).toFixed(2)}/tCO₂ ${ratingBadge(com.carbonRating)}`, ''));
+  if(com.subsidies)    energyCells.push(cell('Fossil fuel subsidies', pct(com.subsidies)+' of GDP'+trendArrow(com.subsidiesTrend), ''));
   const energyEl = document.getElementById("panel-energy");
-  energyEl.innerHTML = energyRows.length ? energyRows.join('') : '<div style="opacity:.4;font-size:12px">No data</div>';
-  energyEl.closest('.panel-section').style.display = energyRows.length ? '' : 'none';
+  energyEl.innerHTML = energyCells.length ? `<div class="data-grid">${energyCells.join('')}</div>` : '';
+  energyEl.closest('.panel-section').style.display = energyCells.length ? '' : 'none';
 
   // Fossil fuel production
-  const prodRows = [];
-  if(com.oilProdShare)  prodRows.push(`<div class="data-row"><span class="data-label">Oil production</span><span class="data-value">${pct(com.oilProdShare)} of global${cagr(com.oilProdCagr)}</span></div>`);
-  if(com.coalProdShare) prodRows.push(`<div class="data-row"><span class="data-label">Coal production</span><span class="data-value">${pct(com.coalProdShare)} of global${cagr(com.coalProdCagr)}</span></div>`);
-  if(com.gasProdShare)  prodRows.push(`<div class="data-row"><span class="data-label">Gas production</span><span class="data-value">${pct(com.gasProdShare)} of global${cagr(com.gasProdCagr)}</span></div>`);
-  if(com.newLicenses)   prodRows.push(`<div class="data-row"><span class="data-label">New oil & gas licenses</span><span class="data-value">${com.newLicenses}</span>${com.newLicensesNote?`<div class="data-note" style="width:100%">${com.newLicensesNote}</div>`:''}</div>`);
-  if(com.sanctioned)    prodRows.push(`<div class="data-row"><span class="data-label">Sanctioned projects</span><span class="data-value">${com.sanctioned}</span></div>`);
+  const prodCells = [];
+  if(com.oilProdShare)  prodCells.push(cell('Oil production', pct(com.oilProdShare)+' of global'+cagr(com.oilProdCagr), ''));
+  if(com.coalProdShare) prodCells.push(cell('Coal production', pct(com.coalProdShare)+' of global'+cagr(com.coalProdCagr), ''));
+  if(com.gasProdShare)  prodCells.push(cell('Gas production', pct(com.gasProdShare)+' of global'+cagr(com.gasProdCagr), ''));
+  if(com.newLicenses)   prodCells.push(cell('New oil & gas licenses', com.newLicenses, com.newLicensesNote||''));
+  if(com.sanctioned)    prodCells.push(cell('Sanctioned projects', com.sanctioned, ''));
   const prodEl = document.getElementById("panel-production");
-  prodEl.innerHTML = prodRows.length ? prodRows.join('') : '<div style="opacity:.4;font-size:12px">No data</div>';
-  document.getElementById("section-production").style.display = prodRows.length ? '' : 'none';
+  prodEl.innerHTML = prodCells.length ? `<div class="data-grid">${prodCells.join('')}</div>` : '';
+  document.getElementById("section-production").style.display = prodCells.length ? '' : 'none';
 
   // Fossil fuel consumption
-  const consRows = [];
-  if(com.oilConsShare)  consRows.push(`<div class="data-row"><span class="data-label">Oil consumption</span><span class="data-value">${pct(com.oilConsShare)} of global${cagr(com.oilConsGrowth)}</span></div>`);
-  if(com.coalConsShare) consRows.push(`<div class="data-row"><span class="data-label">Coal consumption</span><span class="data-value">${pct(com.coalConsShare)} of global${cagr(com.coalConsGrowth)}</span></div>`);
-  if(com.gasConsShare)  consRows.push(`<div class="data-row"><span class="data-label">Gas consumption</span><span class="data-value">${pct(com.gasConsShare)} of global${cagr(com.gasConsGrowth)}</span></div>`);
+  const consCells = [];
+  if(com.oilConsShare)  consCells.push(cell('Oil consumption', pct(com.oilConsShare)+' of global'+cagr(com.oilConsGrowth), ''));
+  if(com.coalConsShare) consCells.push(cell('Coal consumption', pct(com.coalConsShare)+' of global'+cagr(com.coalConsGrowth), ''));
+  if(com.gasConsShare)  consCells.push(cell('Gas consumption', pct(com.gasConsShare)+' of global'+cagr(com.gasConsGrowth), ''));
   const consEl = document.getElementById("panel-consumption");
-  consEl.innerHTML = consRows.length ? consRows.join('') : '<div style="opacity:.4;font-size:12px">No data</div>';
-  document.getElementById("section-consumption").style.display = consRows.length ? '' : 'none';
+  consEl.innerHTML = consCells.length ? `<div class="data-grid">${consCells.join('')}</div>` : '';
+  document.getElementById("section-consumption").style.display = consCells.length ? '' : 'none';
 
   document.getElementById("modal-overlay").classList.add("open");
   document.getElementById("panel-body").scrollTop=0;

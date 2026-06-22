@@ -1186,7 +1186,15 @@ function runSequence(){
   const part2=[...greens].filter(c=>!mapPriority.includes(c.name)).sort(()=>Math.random()-0.5);
   const greenIslands=ISLAND_NATIONS.filter(n=>(_statusMap[n]&&_statusMap[n]!=="blue"));
   const totalIslands=greenIslands.length;
+  const totalAnimated=greens.filter(c=>!c.nocount).length+totalIslands;
   let i=0,lit=0,phase="part1";
+  function updateStatCounters(litNow){
+    const ratio=totalAnimated>0?Math.min(litNow/totalAnimated,1):0;
+    const pop=parseFloat(_copy.population)||0;
+    const oil=parseFloat(_copy.oilprod)||0;
+    document.getElementById("cnt-pop").textContent=(pop*ratio).toFixed(1)+"%";
+    document.getElementById("cnt-oil").textContent=(oil*ratio).toFixed(1)+"%";
+  }
 
   function lightIslands(afterDone){
     const allDots=Array.from(document.querySelectorAll('.idot'));

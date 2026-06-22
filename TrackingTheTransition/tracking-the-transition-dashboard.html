@@ -448,16 +448,22 @@ async function fetchCopy(){
     const res = await fetch(COPY_URL, {mode:"cors",cache:"no-cache"});
     if(!res.ok) throw new Error("HTTP "+res.status);
     const csv = await res.text();
-    const rows = csv.trim().split("\n").slice(1); // skip header
-    // Row order: Counter, Green, Blue, Red, Yellow
-    const keys = ["counter","green","blue","red","yellow"];
-    rows.forEach((line,i)=>{
-      const parts = line.split(",");
-      const val = parts.slice(1).join(",").trim(); // col B (may contain commas)
-      if(val && keys[i]) _copy[keys[i]] = val;
-    });
+    const rows = csv.trim().split("\n").slice(1); // skip header row
+    const get = (row, col) => {
+      if(!row) return '';
+      const parts = row.split(",");
+      return (parts[col]||'').trim().replace(/^"|"$/g,'');
+    };
+    if(rows[0]) _copy.counter    = get(rows[0],1) || _copy.counter;
+    if(rows[1]) _copy.green      = get(rows[1],1) || _copy.green;
+    if(rows[2]) _copy.blue       = get(rows[2],1) || _copy.blue;
+    if(rows[3]) _copy.red        = get(rows[3],1) || _copy.red;
+    if(rows[4]) _copy.yellow     = get(rows[4],1) || _copy.yellow;
+    if(rows[5]) _copy.headline   = get(rows[5],1) || _copy.headline;
+    if(rows[6]){ _copy.gdpLabel  = get(rows[6],1) || _copy.gdpLabel;  _copy.gdp        = get(rows[6],2) || _copy.gdp; }
+    if(rows[7]){ _copy.popLabel  = get(rows[7],1) || _copy.popLabel;  _copy.population = get(rows[7],2) || _copy.population; }
+    if(rows[8]){ _copy.oilLabel  = get(rows[8],1) || _copy.oilLabel;  _copy.oilprod    = get(rows[8],2) || _copy.oilprod; }
     console.log("[Map] Copy loaded:", _copy);
-
   } catch(e){
     console.warn("[Map] Copy sheet failed, using defaults:", e.message);
   }

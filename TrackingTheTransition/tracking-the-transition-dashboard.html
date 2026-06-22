@@ -378,15 +378,19 @@ let _statusMap = {};
 const WORKER_URL = "https://transitionnews.petter-kornemark.workers.dev";
 
 const SHEET_URL ="https://docs.google.com/spreadsheets/d/e/2PACX-1vR0b53-bH6EW2fJnlELIFMnlBz8qwJnnmylQFEkJUpIHp97gKIEv0IlE8FfSwZG8_nsAcAWI4bZ7NvU/pub?gid=636099964&single=true&output=csv";
-const COPY_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0b53-bH6EW2fJnlELIFMnlBz8qwJnnmylQFEkJUpIHp97gKIEv0IlE8FfSwZG8_nsAcAWI4bZ7NvU/pub?gid=1536498573&single=true&output=csv";
+const COPY_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0b53-bH6EW2fJnlELIFMnlBz8qwJnnmylQFEkJUpIHp97gKIEv0IlE8FfSwZG8_nsAcAWI4bZ7NvU/pub?gid=1641561421&single=true&output=csv";
 
 // Copy texts — defaults, overridden by sheet
 let _copy = {
-  counter:    "Countries are in",
-  green:      "joined the first conference",
-  blue:       "did not join the first conference",
-  red:        "did not join the first conference",
-  yellow:     "did not join the first conference",
+  counter:    "Countries has joined the coalition",
+  green:      "has joined the coalition",
+  blue:       "is outside the coalition",
+  red:        "is blocking the transition away from fossil fuels",
+  yellow:     "has not joined the coalition",
+  headline:   "The Transition Away Tracker",
+  gdp: "1/3",  gdpLabel: "of GDP",
+  population: "50%", popLabel: "of population",
+  oilprod:    "20%", oilLabel: "of oil production",
 };
 const ISLAND_NATIONS = ['Antigua and Barbuda', 'Kiribati', 'Maldives', 'Marshall Islands', 'Micronesia', 'Palau', 'Saint Kitts and Nevis', 'Saint Lucia', 'Singapore', 'Tuvalu', 'Vatican - Santa Sede'];
 const NAME_MAP = {'Dominican Republic': 'Dominican Rep.', 'Solomon Islands': 'Solomon Is.', 'Türkiye': 'Turkey', 'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom', 'United Republic of Tanzania': 'Tanzania'};

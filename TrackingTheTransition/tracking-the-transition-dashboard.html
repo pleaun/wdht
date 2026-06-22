@@ -1023,28 +1023,8 @@ function drawFrame(ts){
   ctx.drawImage(offBase, srcX, srcY, srcW, srcH, 0, 0, w, h);
   ctx.drawImage(offGreen, srcX, srcY, srcW, srcH, 0, 0, w, h);
 
-  // 5. Trail — advance age, draw fading particles, then remove dead ones
-  ctx.save();
-  ctx.globalCompositeOperation="screen";
-  for(let i=trail.length-1;i>=0;i--){
-    const p=trail[i];
-    p.age++;
-    if(p.age>p.maxAge){ trail.splice(i,1); continue; }
-    const life=1-(p.age/p.maxAge);        // 1→0 as it ages
-    const eased=life*life;                // ease out — fades quickly at end
-    const alpha=eased*0.144;
-    const r=p.r*(1+p.age*0.04);          // bloom outward slightly
-
-    const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
-    grad.addColorStop(0, `rgba(160,255,210,${alpha*1.4})`);
-    grad.addColorStop(0.4,`rgba(25,205,155,${alpha})`);
-    grad.addColorStop(1,  "rgba(25,205,155,0)");
-    ctx.fillStyle=grad;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,r,0,Math.PI*2);
-    ctx.fill();
-  }
-  ctx.restore();
+  // 5. Trail — disabled
+  // ctx.save(); ... ctx.restore();
 }
 
 // ─── Transitions ───────────────────────────────────────────────

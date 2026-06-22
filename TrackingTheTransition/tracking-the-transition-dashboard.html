@@ -313,91 +313,9 @@ function drawOcean(ts){
   oceanCtx.setTransform(1,0,0,1,0,0);
   oceanCtx.clearRect(0,0,oceanCanvas.width,oceanCanvas.height);
   oceanCtx.restore();
-
-  const t = ts * 0.00014; // slow drift
-
-  // ── 1. Near-black base — clearly darker than land countries ──
-  // Base — dark navy, not pitch black
-  oceanCtx.fillStyle = "#040f24";
+  // White background — no animation
+  oceanCtx.fillStyle = "#ffffff";
   oceanCtx.fillRect(0, 0, W, H);
-
-  // ── Large slow aurora glows ──
-  const glows = [
-    { cx:0.15, cy:0.50, rx:0.65, ry:0.50, spd:0.28, phase:0.0, col:"12,50,160" },
-    { cx:0.70, cy:0.28, rx:0.60, ry:0.45, spd:0.18, phase:2.1, col:"8,35,130"  },
-    { cx:0.45, cy:0.78, rx:0.70, ry:0.40, spd:0.22, phase:4.4, col:"15,55,180" },
-    { cx:0.85, cy:0.60, rx:0.45, ry:0.50, spd:0.31, phase:1.3, col:"10,40,140" },
-  ];
-  for(const g of glows){
-    const ox = Math.sin(t * g.spd + g.phase) * W * 0.07;
-    const oy = Math.cos(t * g.spd * 0.7 + g.phase) * H * 0.06;
-    const cx = W * g.cx + ox, cy = H * g.cy + oy;
-    const rx = W * g.rx, ry = H * g.ry;
-    const r  = Math.max(rx, ry);
-    const alpha = 0.22 + Math.sin(t * 0.38 + g.phase) * 0.06;
-    oceanCtx.save();
-    oceanCtx.translate(cx, cy);
-    oceanCtx.scale(rx / r, ry / r);
-    const grad = oceanCtx.createRadialGradient(0,0,0, 0,0,r);
-    grad.addColorStop(0,   `rgba(${g.col},${alpha})`);
-    grad.addColorStop(0.45,`rgba(${g.col},${alpha*0.35})`);
-    grad.addColorStop(1,   `rgba(${g.col},0)`);
-    oceanCtx.fillStyle = grad;
-    oceanCtx.beginPath(); oceanCtx.arc(0,0,r,0,Math.PI*2); oceanCtx.fill();
-    oceanCtx.restore();
-  }
-
-  // ── Horizontal shimmer lines ──
-  for(let i=0;i<7;i++){
-    const yBase = H*(0.08+i*0.14);
-    const yOff  = Math.sin(t*(0.18+i*0.06)+i*1.7)*H*0.035;
-    const y     = yBase+yOff;
-    const xOff  = Math.sin(t*0.12+i*2.3)*W*0.25;
-    const lineW = W*(0.55+Math.sin(t*0.08+i)*0.22);
-    const alpha = 0.13+Math.sin(t*0.32+i*1.3)*0.06;
-    const lg=oceanCtx.createLinearGradient(xOff,y,xOff+lineW,y);
-    lg.addColorStop(0,  `rgba(40,120,255,0)`);
-    lg.addColorStop(0.3,`rgba(40,120,255,${alpha})`);
-    lg.addColorStop(0.7,`rgba(80,160,255,${alpha})`);
-    lg.addColorStop(1,  `rgba(40,120,255,0)`);
-    oceanCtx.fillStyle=lg;
-    oceanCtx.fillRect(xOff, y-1.5, lineW, 3);
-  }
-
-  // ── Sparkles ──
-  for(let i=0;i<20;i++){
-    const sx=W*((i*0.137+Math.sin(t*0.08+i)*0.04+1)%1);
-    const sy=H*((i*0.193+Math.cos(t*0.11+i*1.3)*0.04+1)%1);
-    const pulse=0.5+0.5*Math.sin(t*(1.1+i*0.28)+i*2.7);
-    oceanCtx.fillStyle=`rgba(100,180,255,${pulse*0.18})`;
-    oceanCtx.beginPath(); oceanCtx.arc(sx,sy,1.4,0,Math.PI*2); oceanCtx.fill();
-  }
-
-  // ── Curved lat lines matching map projection ──
-  if(typeof proj!=="undefined"&&proj&&typeof w!=="undefined"&&w>0){
-    const cx2=w/2, cy2=h/2;
-    const lats=[-60,-45,-30,-15,0,15,30,45,60,75];
-    for(let li=0;li<lats.length;li++){
-      const lat=lats[li];
-      const shimmer=0.5+0.5*Math.sin(t*0.6+li*0.9);
-      const baseAlpha=lat===0?0.12:0.055; // equator slightly brighter
-      const alpha=(baseAlpha+shimmer*0.025);
-      oceanCtx.beginPath();
-      let first=true;
-      for(let lon=-180;lon<=180;lon+=3){
-        const pt=proj([lon,lat]);
-        if(!pt)continue;
-        // Transform from offBase coords to screen (same as drawImage source→dest mapping)
-        const sx=cx2+(pt[0]-cx2)*mapScale+panX;
-        const sy=cy2+(pt[1]-cy2)*mapScale+panY;
-        if(first){oceanCtx.moveTo(sx,sy);first=false;}
-        else oceanCtx.lineTo(sx,sy);
-      }
-      oceanCtx.strokeStyle=`rgba(50,120,255,${alpha})`;
-      oceanCtx.lineWidth=lat===0?1.2:0.7;
-      oceanCtx.stroke();
-    }
-  }
 }
 window.addEventListener("resize", resizeOcean);
 

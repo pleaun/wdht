@@ -1205,7 +1205,7 @@ function runSequence(){
     function lightOne(){
       if(ci>=totalIslands){afterDone(isls);return;}
       if(ii<isls.length){isls[ii].style.transition='opacity 0.9s ease-in-out';isls[ii].style.opacity='1';ii++;}
-      ci++;document.getElementById('cnt').textContent=lit+ci;
+      ci++;document.getElementById('cnt').textContent=lit+ci;updateStatCounters(lit+ci);
       seqTimer=setTimeout(lightOne,50+Math.random()*20);
     }
     lightOne();

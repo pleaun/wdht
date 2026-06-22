@@ -308,6 +308,8 @@ function resizeOcean(){
   oceanCanvas.height = Math.round(window.innerHeight * (Math.min(window.devicePixelRatio||1,2)));
   oceanCtx.setTransform(Math.min(window.devicePixelRatio||1,2),0,0,Math.min(window.devicePixelRatio||1,2),0,0);
 }
+let _oceanPatternCache = null;
+let _oceanPatternW = 0, _oceanPatternH = 0;
 function drawOcean(ts){
   const W=window.innerWidth, H=window.innerHeight;
   if(W<1||H<1) return;
@@ -315,9 +317,23 @@ function drawOcean(ts){
   oceanCtx.setTransform(1,0,0,1,0,0);
   oceanCtx.clearRect(0,0,oceanCanvas.width,oceanCanvas.height);
   oceanCtx.restore();
-  // White background — no animation
   oceanCtx.fillStyle = "#ffffff";
   oceanCtx.fillRect(0, 0, W, H);
+  // Subtle dot grid — Planet 20 on white, drawn once and cached
+  if(!_oceanPatternCache || _oceanPatternW!==W || _oceanPatternH!==H){
+    const spacing = 20, r = 0.9;
+    const pc = document.createElement("canvas");
+    pc.width = W; pc.height = H;
+    const px = pc.getContext("2d");
+    px.fillStyle = "#eaeaf1";
+    for(let x=spacing/2; x<W; x+=spacing)
+      for(let y=spacing/2; y<H; y+=spacing){
+        px.beginPath(); px.arc(x,y,r,0,Math.PI*2); px.fill();
+      }
+    _oceanPatternCache = pc;
+    _oceanPatternW = W; _oceanPatternH = H;
+  }
+  oceanCtx.drawImage(_oceanPatternCache, 0, 0);
 }
 window.addEventListener("resize", resizeOcean);
 

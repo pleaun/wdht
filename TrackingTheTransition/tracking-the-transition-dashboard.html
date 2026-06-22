@@ -1244,7 +1244,10 @@ function runSequence(){
       if(ri>=s.length){seqTimer=setTimeout(runSequence,600);return;}
       addTrans(s[ri],1,0,900);ri++;seqTimer=setTimeout(fadeOne,28);
     }
-    document.getElementById("cnt").textContent="0";fadeOne();
+    document.getElementById("cnt").textContent="0";
+    document.getElementById("cnt-pop").textContent="0%";
+    document.getElementById("cnt-oil").textContent="0%";
+    fadeOne();
   }
   seqTimer=setTimeout(lightNext,100);
 }

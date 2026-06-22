@@ -793,65 +793,44 @@ function drawFrame(ts){
   offBaseCtx.clearRect(0,0,w,h);
   offGreenCtx.clearRect(0,0,w,h);
 
-  // 1. Base countries
+  // 1. Blue countries — Planet 20 (#eaeaf1)
   for(const c of countries){
-    if(c.isGreen&&c.lit) continue;
-    if((c.isRed||c.isYellow)&&c.lit) continue;
-    if(c.isRed||c.isYellow){
-      // Statisk blå som fader ut medan röd/gul fader in — ingen grön tinge
-      const fadeOut=1-c.alpha;
-      if(fadeOut>0.01){
-        offBaseCtx.fillStyle=`rgba(19,23,89,${0.90*fadeOut})`;
-        offBaseCtx.fill(c.path2d);
-        offBaseCtx.strokeStyle=`rgba(35,44,150,${0.60*fadeOut})`;
-        offBaseCtx.lineWidth=0.5;
-        offBaseCtx.stroke(c.path2d);
-      }
-      continue;
-    }
-    const a=c.alpha;
-    const r=Math.round(19+(25-19)*a);
-    const g=Math.round(23+(205-23)*a);
-    const b=Math.round(89+(155-89)*a);
-    const fa=0.90+(0.76-0.90)*a;
-    offBaseCtx.fillStyle=`rgba(${r},${g},${b},${fa})`;
+    if(c.isGreen||c.isRed||c.isYellow) continue;
+    offBaseCtx.fillStyle="#eaeaf1";
     offBaseCtx.fill(c.path2d);
-    offBaseCtx.strokeStyle=a>0?`rgba(25,205,155,${0.35+a*0.45})`:"rgba(35,44,150,0.60)";
+    offBaseCtx.strokeStyle="#c1c2d7";
     offBaseCtx.lineWidth=0.5;
     offBaseCtx.stroke(c.path2d);
-
   }
 
-  // 1b. Red countries #de2251
+  // 1b. Green countries — Love green (#19cd9b)
   for(const c of countries){
-    if(!c.isRed||(c.alpha<=0&&!c.lit)) continue;
-    const a=c.lit?1:c.alpha;
-    const pulse=Math.sin(performance.now()*0.00120+c.pulsePhase);
-    offBaseCtx.save();
-    offBaseCtx.shadowColor=`rgba(222,34,81,${(0.35+pulse*0.1)*a})`;
-    offBaseCtx.shadowBlur=14;
-    offBaseCtx.fillStyle=`rgba(222,34,81,${(0.72+pulse*0.06)*a})`;
+    if(!c.isGreen) continue;
+    offBaseCtx.fillStyle="#19cd9b";
     offBaseCtx.fill(c.path2d);
-    offBaseCtx.strokeStyle=`rgba(222,34,81,${(0.85+pulse*0.05)*a})`;
-    offBaseCtx.lineWidth=0.8;
+    offBaseCtx.strokeStyle="#0faa81";
+    offBaseCtx.lineWidth=0.6;
     offBaseCtx.stroke(c.path2d);
-    offBaseCtx.restore();
   }
 
-  // 1c. Yellow countries #ffbb00
+  // 1c. Red countries — Pledge red (#de2251)
   for(const c of countries){
-    if(!c.isYellow||(c.alpha<=0&&!c.lit)) continue;
-    const a=c.lit?1:c.alpha;
-    const pulse=Math.sin(performance.now()*0.00110+c.pulsePhase);
-    offBaseCtx.save();
-    offBaseCtx.shadowColor=`rgba(255,187,0,${(0.35+pulse*0.1)*a})`;
-    offBaseCtx.shadowBlur=14;
-    offBaseCtx.fillStyle=`rgba(255,187,0,${(0.72+pulse*0.06)*a})`;
+    if(!c.isRed) continue;
+    offBaseCtx.fillStyle="#de2251";
     offBaseCtx.fill(c.path2d);
-    offBaseCtx.strokeStyle=`rgba(255,187,0,${(0.85+pulse*0.05)*a})`;
-    offBaseCtx.lineWidth=0.8;
+    offBaseCtx.strokeStyle="#b81a40";
+    offBaseCtx.lineWidth=0.6;
     offBaseCtx.stroke(c.path2d);
-    offBaseCtx.restore();
+  }
+
+  // 1d. Yellow countries — Warning yellow (#ffbb00)
+  for(const c of countries){
+    if(!c.isYellow) continue;
+    offBaseCtx.fillStyle="#ffbb00";
+    offBaseCtx.fill(c.path2d);
+    offBaseCtx.strokeStyle="#cc9600";
+    offBaseCtx.lineWidth=0.6;
+    offBaseCtx.stroke(c.path2d);
   }
 
   // 2. Texture clipped to land (destination-in mask trick)

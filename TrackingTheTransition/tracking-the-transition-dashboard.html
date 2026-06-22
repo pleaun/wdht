@@ -1179,6 +1179,8 @@ function runSequence(){
   const greens=countries.filter(c=>c.isGreen||c.isRed||c.isYellow);
   greens.forEach(c=>{c.lit=false;c.alpha=0;});
   document.getElementById("cnt").textContent="0";
+  document.getElementById("cnt-pop").textContent="0%";
+  document.getElementById("cnt-oil").textContent="0%";
   const mapPriority=["Colombia","Netherlands"];
   const part1=mapPriority.map(n=>greens.find(c=>c.name===n||(NAME_MAP[n]&&NAME_MAP[n]===c.name))).filter(Boolean);
   const part2=[...greens].filter(c=>!mapPriority.includes(c.name)).sort(()=>Math.random()-0.5);

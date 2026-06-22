@@ -1070,6 +1070,16 @@ function tickTrans(ts){
 
 // ─── Sequence ──────────────────────────────────────────────────
 let seqTimer=null;
+function showStatic(){
+  countries.forEach(c=>{ c.lit=true; c.alpha=1; });
+  Array.from(document.querySelectorAll('.idot')).forEach(el=>{ el.style.transition='none'; el.style.opacity='1'; });
+  const greenIslands=ISLAND_NATIONS.filter(n=>(_statusMap[n]&&_statusMap[n]!=="blue"));
+  const counted=countries.filter(c=>(c.isGreen||c.isRed||c.isYellow)&&!c.nocount).length+greenIslands.length;
+  document.getElementById("cnt").textContent=counted;
+  document.getElementById("cnt-pop").textContent=parseFloat(_copy.population||0).toFixed(1)+"%";
+  document.getElementById("cnt-oil").textContent=parseFloat(_copy.oilprod||0).toFixed(1)+"%";
+}
+
 function runSequence(){
   if(seqTimer)clearTimeout(seqTimer);
   activeTransitions=[];

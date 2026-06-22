@@ -811,23 +811,29 @@ function drawFrame(ts){
     offBaseCtx.stroke(c.path2d);
   }
 
-  // 1c. Red countries — Pledge red (#de2251)
+  // 1c. Red countries — Pledge red (#de2251), white separator border
   for(const c of countries){
     if(!c.isRed) continue;
+    offBaseCtx.strokeStyle="#ffffff";
+    offBaseCtx.lineWidth=1.5;
+    offBaseCtx.stroke(c.path2d);
     offBaseCtx.fillStyle="#de2251";
     offBaseCtx.fill(c.path2d);
-    offBaseCtx.strokeStyle="#b81a40";
-    offBaseCtx.lineWidth=0.6;
+    offBaseCtx.strokeStyle="rgba(180,20,55,0.5)";
+    offBaseCtx.lineWidth=0.5;
     offBaseCtx.stroke(c.path2d);
   }
 
-  // 1d. Yellow countries — Warning yellow (#ffbb00)
+  // 1d. Yellow countries — Warning yellow (#ffbb00), white separator border
   for(const c of countries){
     if(!c.isYellow) continue;
+    offBaseCtx.strokeStyle="#ffffff";
+    offBaseCtx.lineWidth=1.5;
+    offBaseCtx.stroke(c.path2d);
     offBaseCtx.fillStyle="#ffbb00";
     offBaseCtx.fill(c.path2d);
-    offBaseCtx.strokeStyle="#cc9600";
-    offBaseCtx.lineWidth=0.6;
+    offBaseCtx.strokeStyle="rgba(160,120,0,0.5)";
+    offBaseCtx.lineWidth=0.5;
     offBaseCtx.stroke(c.path2d);
   }
 

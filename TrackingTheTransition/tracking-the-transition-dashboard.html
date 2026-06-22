@@ -608,15 +608,19 @@ async function loadAndInit(){
     if((w<10||h<10)&&att>0){setTimeout(()=>tryInit(att-1),150);return;}
     try{buildPaths();}catch(e){console.error("[Map] buildPaths:",e);return;}
     try{updateIslandSVG();updateCityMarkers();}catch(e){console.error("[Map] updateIslandSVG:",e);return;}
-    // Set counter label from copy sheet
-    const ctr=document.getElementById("counter");
-    if(ctr){
-      // Replace text node (last child) with copy text
-      const nodes=[...ctr.childNodes];
-      const textNode=nodes.find(n=>n.nodeType===3&&n.textContent.trim());
-      if(textNode) textNode.textContent=_copy.counter;
-      else ctr.appendChild(document.createTextNode(_copy.counter));
-    }
+    // Apply copy texts to bottom stats + headline
+    const elCL = document.getElementById("counter-label");
+    if(elCL) elCL.textContent = _copy.counter;
+    const elHL = document.getElementById("map-headline");
+    if(elHL) elHL.textContent = _copy.headline;
+    const elGDP = document.getElementById("cnt-gdp");
+    if(elGDP) elGDP.textContent = _copy.gdp || "—";
+    const elGDPL = document.getElementById("gdp-label");
+    if(elGDPL) elGDPL.textContent = _copy.gdpLabel;
+    const elPopL = document.getElementById("pop-label");
+    if(elPopL) elPopL.textContent = _copy.popLabel;
+    const elOilL = document.getElementById("oil-label");
+    if(elOilL) elOilL.textContent = _copy.oilLabel;
     requestAnimationFrame(loop);setTimeout(runSequence,200);
     console.log("[Map] init complete");
   }

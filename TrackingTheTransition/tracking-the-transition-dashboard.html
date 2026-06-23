@@ -810,6 +810,9 @@ function buildPaths(){
     const cRed   = cStatus==="red";
     const cYellow= cStatus==="yellow";
     const cent = d3.geoCentroid(f);
+    const b = d3.geoBounds(f);
+    const p1 = proj(b[0]), p2 = proj(b[1]);
+    const projArea = p1 && p2 ? Math.abs(p2[0]-p1[0]) * Math.abs(p2[1]-p1[1]) : 0;
     countries.push({
       path2d:    new Path2D(d),
       feature:   f,

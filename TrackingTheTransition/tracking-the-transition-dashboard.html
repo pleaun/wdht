@@ -1065,7 +1065,7 @@ function runSequence(){
       if(ci>=totalIslands){afterDone(isls);return;}
       if(ii<isls.length){isls[ii].style.transition='opacity 0.9s ease-in-out';isls[ii].style.opacity='1';ii++;}
       ci++;document.getElementById('cnt').textContent=lit+ci;updateStatCounters(lit+ci);
-      seqTimer=setTimeout(lightOne,50+Math.random()*20);
+      seqTimer=setTimeout(lightOne,18+Math.random()*8);
     }
     lightOne();
   }
@@ -1078,12 +1078,12 @@ function runSequence(){
         document.getElementById("cnt").textContent=lit;updateStatCounters(lit);
         // Show city marker when Colombia (first) lights up
         if(i===0) showCityMarker("Santa Marta");
-        i++;seqTimer=setTimeout(lightNext,50+Math.random()*20);
+        i++;seqTimer=setTimeout(lightNext,18+Math.random()*8);
       } else {
         phase="islands";i=0;
         lightIslands(isls=>{
           lit+=totalIslands;phase="part2";lightNext._isls=isls;
-          seqTimer=setTimeout(lightNext,50+Math.random()*20);
+          seqTimer=setTimeout(lightNext,18+Math.random()*8);
         });
       }
     } else if(phase==="part2"){
@@ -1091,7 +1091,7 @@ function runSequence(){
       addTrans(part2[i],0,1,400);
       if(!part2[i].nocount)lit++;
       document.getElementById("cnt").textContent=lit;updateStatCounters(lit);
-      i++;seqTimer=setTimeout(lightNext,50+Math.random()*20);
+      i++;seqTimer=setTimeout(lightNext,18+Math.random()*8);
     }
   }
 

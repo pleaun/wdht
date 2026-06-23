@@ -1024,34 +1024,84 @@ function drawFrame(ts){
   // 5. Country names overlay
   if(showCountryNames){
     const cx2=w/2, cy2=h/2;
-    const MIN_AREA = 3000; // px² at mapScale=1; scales with zoom
+    const LARGE_AREA = 8000; // px² — fits label inside country
+    const fontSize = 9;
     ctx.save();
+    ctx.font=`300 ${fontSize}px Inter,system-ui,sans-serif`;
     ctx.textAlign="center"; ctx.textBaseline="middle";
+
+    // Collect visible label positions to detect overlaps
+    const placed = []; // {x,y,tw,th,lx,ly,label,useLeader}
+
     for(const c of countries){
       if(!c.centLatLon || !c.projArea) continue;
-      const visArea = c.projArea * mapScale * mapScale;
-      if(visArea < MIN_AREA) continue;
       const pt=proj(c.centLatLon); if(!pt) continue;
       const sx=cx2+(pt[0]-cx2)*mapScale+panX;
       const sy=cy2+(pt[1]-cy2)*mapScale+panY;
-      if(sx<10||sx>w-10||sy<10||sy>h-10) continue;
+      // Skip if centroid is off-screen
+      if(sx<-40||sx>w+40||sy<-40||sy>h+40) continue;
       const label=getDisplayName(c.name);
-      // Font size scales gently with country size, capped 8–12px
-      const fontSize=Math.max(8, Math.min(12, 8 + Math.log(visArea/MIN_AREA)*1.2));
-      ctx.font=`600 ${fontSize}px Inter,system-ui,sans-serif`;
-      const tm=ctx.measureText(label);
-      const tw=tm.width+8, th=fontSize+6;
-      // Pill background
-      const bgAlpha = c.isGreen ? 0.25 : 0.55;
-      ctx.fillStyle=`rgba(255,255,255,${bgAlpha})`;
-      if(ctx.roundRect){
-        ctx.beginPath(); ctx.roundRect(sx-tw/2,sy-th/2,tw,th,3); ctx.fill();
-      } else {
-        ctx.fillRect(sx-tw/2,sy-th/2,tw,th);
+      const tw=ctx.measureText(label).width+6;
+      const th=fontSize+4;
+      const visArea = c.projArea * mapScale * mapScale;
+      const useLeader = visArea < LARGE_AREA;
+
+      // For small countries push label outward from centroid
+      let lx=sx, ly=sy;
+      if(useLeader){
+        // Try to find a direction that doesn't overlap existing labels
+        const offsets=[[1,-1],[1,1],[-1,-1],[-1,1],[1,0],[-1,0],[0,-1],[0,1]];
+        const dist=Math.max(10, Math.sqrt(visArea)*0.4+6);
+        let best=null, bestScore=Infinity;
+        for(const [dx,dy] of offsets){
+          const tx=sx+dx*dist*2, ty=sy+dy*dist*1.5;
+          if(tx<tw/2+2||tx>w-tw/2-2||ty<th/2+2||ty>h-th/2-2) continue;
+          // Score by overlap count with placed labels
+          let score=0;
+          for(const p of placed){
+            const ox=Math.abs(tx-p.lx)-( tw/2+p.tw/2);
+            const oy=Math.abs(ty-p.ly)-(th/2+p.th/2);
+            if(ox<0&&oy<0) score+=1;
+          }
+          if(score<bestScore){bestScore=score;best=[tx,ty];}
+        }
+        if(best){lx=best[0];ly=best[1];}
+        else{lx=sx+(sx>w/2?1:-1)*20;ly=sy+(sy>h/2?1:-1)*15;}
       }
-      // Text
-      ctx.fillStyle = c.isGreen ? "rgba(255,255,255,0.95)" : "rgba(51,54,124,0.75)";
-      ctx.fillText(label, sx, sy);
+      // Clamp label into canvas
+      lx=Math.max(tw/2+2,Math.min(w-tw/2-2,lx));
+      ly=Math.max(th/2+2,Math.min(h-th/2-2,ly));
+      placed.push({sx,sy,tw,th,lx,ly,label,useLeader,isGreen:c.isGreen,visArea});
+    }
+
+    // Draw leader lines first (below text)
+    ctx.lineCap="round";
+    for(const p of placed){
+      if(!p.useLeader) continue;
+      const dx=p.lx-p.sx, dy=p.ly-p.sy;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<4) continue;
+      // Stop line a bit before anchor and label box
+      const anchorR=Math.max(2,Math.sqrt(p.visArea)*0.15);
+      const t0=anchorR/dist, t1=1-(p.th*0.6)/dist;
+      if(t0>=t1) continue;
+      ctx.beginPath();
+      ctx.moveTo(p.sx+dx*t0, p.sy+dy*t0);
+      ctx.lineTo(p.sx+dx*t1, p.sy+dy*t1);
+      ctx.strokeStyle="rgba(51,54,124,0.35)";
+      ctx.lineWidth=0.6;
+      ctx.stroke();
+    }
+
+    // Draw labels
+    for(const p of placed){
+      // Subtle white halo for readability
+      ctx.strokeStyle="rgba(255,255,255,0.85)";
+      ctx.lineWidth=2.5;
+      ctx.lineJoin="round";
+      ctx.strokeText(p.label, p.lx, p.ly);
+      ctx.fillStyle="rgba(51,54,124,0.82)";
+      ctx.fillText(p.label, p.lx, p.ly);
     }
     ctx.restore();
   }

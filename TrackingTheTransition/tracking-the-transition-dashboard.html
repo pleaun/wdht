@@ -1443,15 +1443,15 @@ function updateIslandSVG(){
       ring.setAttribute("stroke","#19cd9b");ring.setAttribute("stroke-width","1.5");
       ring.setAttribute("style","animation:tpulse 2s ease-in-out infinite;");g.appendChild(ring);
     }
-    // Name label (always built, visibility controlled by toggle)
+    // Name label — Tuvalu always visible; others follow toggle
     {
       const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
-      lbl.setAttribute("class","island-name");
+      lbl.setAttribute("class", isTuvalu ? "island-name island-name-always" : "island-name");
       lbl.setAttribute("x","10");lbl.setAttribute("y","4");lbl.setAttribute("text-anchor","start");
       lbl.setAttribute("fill","rgba(51,54,124,0.85)");lbl.setAttribute("font-family","Inter,system-ui,sans-serif");
       lbl.setAttribute("font-size","8");lbl.setAttribute("font-weight","300");
       lbl.setAttribute("paint-order","stroke");lbl.setAttribute("stroke","rgba(255,255,255,0.7)");lbl.setAttribute("stroke-width","1.8");lbl.setAttribute("stroke-linejoin","round");
-      lbl.setAttribute("visibility", showCountryNames ? "visible" : "hidden");
+      lbl.setAttribute("visibility", (isTuvalu || showCountryNames) ? "visible" : "hidden");
       lbl.textContent=getDisplayName(isl.name);g.appendChild(lbl);
     }
     svg.appendChild(g);

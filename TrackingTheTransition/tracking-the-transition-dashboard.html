@@ -1545,13 +1545,19 @@ function openPanel(name){
     `<div class="data-cell-full"><div class="data-label">${label}</div><div class="data-value">${value}</div>${note?`<div class="data-note">${note}</div>`:''}</div>`;
 
   const energyCells = [];
-  if(com.fossilFree)   energyCells.push(cell('Fossil-free electricity', pct(com.fossilFree)+(com.fossilFreeChange?` <span class="${parseFloat(com.fossilFreeChange)<0?'trend-down':'trend-up'}">${parseFloat(com.fossilFreeChange)>=0?'+':''}${parseFloat(com.fossilFreeChange).toFixed(1)}% p.a.</span>`:''), ''));
+  if(com.fossilFree)    energyCells.push(cell('Fossil-free electricity', pct(com.fossilFree)+(com.fossilFreeChange?` <span class="${parseFloat(com.fossilFreeChange)<0?'trend-down':'trend-up'}">${parseFloat(com.fossilFreeChange)>=0?'+':''}${parseFloat(com.fossilFreeChange).toFixed(1)}% p.a.</span>`:''), ''));
   if(com.gridIntensity) energyCells.push(cell('Grid carbon intensity', com.gridIntensity+trendArrow(com.gridTrend), ''));
-  if(com.carbonPrice)  energyCells.push(cell('Carbon price', `€${parseFloat(com.carbonPrice).toFixed(2)}/tCO₂ ${ratingBadge(com.carbonRating)}`, ''));
-  if(com.subsidies)    energyCells.push(cell('Fossil fuel subsidies', pct(com.subsidies)+' of GDP'+trendArrow(com.subsidiesTrend), ''));
   const energyEl = document.getElementById("panel-energy");
   energyEl.innerHTML = energyCells.length ? `<div class="data-grid">${energyCells.join('')}</div>` : '';
-  energyEl.closest('.panel-section').style.display = energyCells.length ? '' : 'none';
+  document.getElementById("section-energy").style.display = energyCells.length ? '' : 'none';
+
+  // Public financing
+  const finCells = [];
+  if(com.carbonPrice)  finCells.push(cell('Carbon price', `€${parseFloat(com.carbonPrice).toFixed(2)}/tCO₂${ratingBadge(com.carbonRating)}`, ''));
+  if(com.subsidies)    finCells.push(cell('Fossil fuel subsidies', pct(com.subsidies)+' of GDP'+trendArrow(com.subsidiesTrend), ''));
+  const finEl = document.getElementById("panel-financing");
+  finEl.innerHTML = finCells.length ? `<div class="data-grid">${finCells.join('')}</div>` : '';
+  document.getElementById("section-financing").style.display = finCells.length ? '' : 'none';
 
   // Fossil fuel production
   const prodCells = [];

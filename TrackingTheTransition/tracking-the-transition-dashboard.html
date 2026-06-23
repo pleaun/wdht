@@ -557,7 +557,7 @@ async function loadAndInit(){
     if(elPopL) elPopL.textContent = _copy.popLabel;
     const elOilL = document.getElementById("oil-label");
     if(elOilL) elOilL.textContent = _copy.oilLabel;
-    requestAnimationFrame(loop);setTimeout(showStatic,200);
+    requestAnimationFrame(loop);setTimeout(runSequence,200);
     console.log("[Map] init complete");
   }
   setTimeout(()=>tryInit(10),100);

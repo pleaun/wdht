@@ -846,19 +846,24 @@ function drawFrame(ts){
     offBaseCtx.stroke(c.path2d);
   }
 
-  // 1b. Green countries — Love green (#19cd9b)
+  // 1b. Green countries — Love green (#19cd9b), only when animated in
   for(const c of countries){
-    if(!c.isGreen) continue;
+    if(!c.isGreen||(c.alpha<=0&&!c.lit)) continue;
+    const a=c.lit?1:c.alpha;
+    offBaseCtx.globalAlpha=a;
     offBaseCtx.fillStyle="#19cd9b";
     offBaseCtx.fill(c.path2d);
     offBaseCtx.strokeStyle="#0a8a68";
     offBaseCtx.lineWidth=1.6;
     offBaseCtx.stroke(c.path2d);
+    offBaseCtx.globalAlpha=1;
   }
 
   // 1c. Red countries — Pledge red (#de2251), white separator border
   for(const c of countries){
-    if(!c.isRed) continue;
+    if(!c.isRed||(c.alpha<=0&&!c.lit)) continue;
+    const a=c.lit?1:c.alpha;
+    offBaseCtx.globalAlpha=a;
     offBaseCtx.strokeStyle="#ffffff";
     offBaseCtx.lineWidth=1.5;
     offBaseCtx.stroke(c.path2d);
@@ -867,11 +872,14 @@ function drawFrame(ts){
     offBaseCtx.strokeStyle="rgba(180,20,55,0.5)";
     offBaseCtx.lineWidth=0.5;
     offBaseCtx.stroke(c.path2d);
+    offBaseCtx.globalAlpha=1;
   }
 
   // 1d. Yellow countries — Warning yellow (#ffbb00), white separator border
   for(const c of countries){
-    if(!c.isYellow) continue;
+    if(!c.isYellow||(c.alpha<=0&&!c.lit)) continue;
+    const a=c.lit?1:c.alpha;
+    offBaseCtx.globalAlpha=a;
     offBaseCtx.strokeStyle="#ffffff";
     offBaseCtx.lineWidth=1.5;
     offBaseCtx.stroke(c.path2d);
@@ -880,6 +888,7 @@ function drawFrame(ts){
     offBaseCtx.strokeStyle="rgba(160,120,0,0.5)";
     offBaseCtx.lineWidth=0.5;
     offBaseCtx.stroke(c.path2d);
+    offBaseCtx.globalAlpha=1;
   }
 
   // 2. Texture clipped to land (destination-in mask trick)

@@ -1053,7 +1053,7 @@ function drawFrame(ts){
   // 5. Country names overlay
   if(showCountryNames){
     const cx2=w/2, cy2=h/2;
-    const LARGE_AREA = 8000; // px² — fits label inside country
+    const LARGE_AREA = 1200; // px² — below this gets a leader line; above = label at centroid
     const fontSize = 9;
     ctx.save();
     ctx.font=`300 ${fontSize}px Inter,system-ui,sans-serif`;

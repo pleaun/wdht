@@ -1529,14 +1529,16 @@ function openPanel(name){
     blue:   {icon:null,      label:"Not yet joined"},
   };
   const pi = policyIcons[status] || policyIcons.blue;
-  document.getElementById("panel-policy").innerHTML = `
-    <div class="policy-status-row">
-      <span class="policy-status-icon">${pi.icon}</span>
-      <div>
-        <div class="policy-status-label">${pi.label}</div>
-        ${com.policyNote ? `<div class="policy-status-note">${com.policyNote}</div>` : ""}
-      </div>
-    </div>`;
+  document.getElementById("panel-policy").innerHTML = pi.icon
+    ? `<div class="policy-status-row">
+        <span class="policy-status-icon">${pi.icon}</span>
+        <div>
+          <div class="policy-status-label">${pi.label}</div>
+          ${com.policyNote ? `<div class="policy-status-note">${com.policyNote}</div>` : ""}
+        </div>
+       </div>`
+    : `<div class="policy-status-label" style="color:#8586b0">${pi.label}</div>
+       ${com.policyNote ? `<div class="policy-status-note">${com.policyNote}</div>` : ""}`;
 
   document.getElementById("panel-commitments").innerHTML = renderCommitRows(COMMIT_LABELS, com);
 

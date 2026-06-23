@@ -1023,6 +1023,34 @@ function drawFrame(ts){
   ctx.drawImage(offBase, srcX, srcY, srcW, srcH, 0, 0, w, h);
   ctx.drawImage(offGreen, srcX, srcY, srcW, srcH, 0, 0, w, h);
 
+  // 4b. Hover stroke on main ctx — always on top, clear contrast
+  if(hoveredCountry && hoveredCountry.path2d){
+    const hc = hoveredCountry;
+    ctx.save();
+    // Apply same pan/zoom transform as the composited image
+    ctx.translate(w/2, h/2);
+    ctx.scale(mapScale, mapScale);
+    ctx.translate(-w/2 + panX/mapScale, -h/2 + panY/mapScale);
+    // White halo first for separation
+    ctx.strokeStyle = "rgba(255,255,255,0.8)";
+    ctx.lineWidth = 3.0 / mapScale;
+    ctx.stroke(hc.path2d);
+    // Colored stroke on top
+    if(hc.isGreen){
+      ctx.strokeStyle = "#0a8a68";
+    } else if(hc.isRed){
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2.0 / mapScale;
+    } else if(hc.isYellow){
+      ctx.strokeStyle = "#7a5a00";
+    } else {
+      ctx.strokeStyle = "#33367c";
+    }
+    ctx.lineWidth = 2.0 / mapScale;
+    ctx.stroke(hc.path2d);
+    ctx.restore();
+  }
+
   // 5. Country names overlay
   if(showCountryNames){
     const cx2=w/2, cy2=h/2;

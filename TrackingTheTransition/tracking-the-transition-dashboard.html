@@ -1492,6 +1492,24 @@ function openPanel(name){
 
   const com = _commitments[name] || _commitments[Object.entries(NAME_MAP).find(([,t])=>t===name)?.[0]] || {};
 
+  // Transition Away Policy Status
+  const policyIcons = {
+    green:  {icon:"✅", label:"Joined the Coalition"},
+    red:    {icon:"🚫", label:"Actively blocking the transition away"},
+    yellow: {icon:"👀", label:"Observer"},
+    blue:   {icon:"⬜", label:"Not yet joined"},
+  };
+  const pi = policyIcons[status] || policyIcons.blue;
+  document.getElementById("panel-policy").innerHTML = `
+    <div class="policy-status-row">
+      <span class="policy-status-icon">${pi.icon}</span>
+      <div>
+        <div class="policy-status-label">${pi.label}</div>
+        ${status==="red" ? `<div class="policy-blocking">⚠ Actively blocking fossil fuel phase-out</div>` : ""}
+        ${com.policyNote ? `<div class="policy-status-note">${com.policyNote}</div>` : ""}
+      </div>
+    </div>`;
+
   document.getElementById("panel-commitments").innerHTML = renderCommitRows(COMMIT_LABELS, com);
 
   // Transition planning + NDC note

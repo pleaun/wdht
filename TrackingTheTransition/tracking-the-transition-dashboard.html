@@ -836,9 +836,8 @@ function drawFrame(ts){
   offBaseCtx.clearRect(0,0,w,h);
   offGreenCtx.clearRect(0,0,w,h);
 
-  // 1. Blue countries — Planet 20 (#eaeaf1)
+  // 1. All countries — gray base (Planet 20), always visible
   for(const c of countries){
-    if(c.isGreen||c.isRed||c.isYellow) continue;
     offBaseCtx.fillStyle="#eaeaf1";
     offBaseCtx.fill(c.path2d);
     offBaseCtx.strokeStyle="#c1c2d7";

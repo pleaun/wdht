@@ -944,15 +944,9 @@ function drawFrame(ts){
   // 3b. Hover stroke — draw on offGreen so it composites with glow
   if(hoveredCountry && hoveredCountry.path2d){
     const hc = hoveredCountry;
-    const isGr = hc.isGreen, isRd = hc.isRed, isYl = hc.isYellow;
-    const ctx3 = isGr ? offGreenCtx : offBaseCtx;
-    // White separator halo first
-    ctx3.strokeStyle = "#ffffff";
-    ctx3.lineWidth   = 3.5;
-    ctx3.stroke(hc.path2d);
-    // Solid colored outline
-    ctx3.strokeStyle = isGr ? "#0a8a68" : isRd ? "#8586b0" : isYl ? "#8586b0" : "#8586b0";
-    ctx3.lineWidth   = 2.0;
+    const ctx3 = hc.isGreen ? offGreenCtx : offBaseCtx;
+    ctx3.strokeStyle = hc.isGreen ? "#0a8a68" : "#8586b0";
+    ctx3.lineWidth   = 2.2;
     ctx3.stroke(hc.path2d);
   }
 

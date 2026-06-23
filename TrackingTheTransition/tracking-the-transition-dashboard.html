@@ -1090,11 +1090,12 @@ function drawFrame(ts){
   // 5. Country names overlay
   if(showCountryNames){
     const cx2=w/2, cy2=h/2;
-    // Countries with projArea*scale² above this threshold get label at centroid; below → leader line
     const LEADER_THRESHOLD = 1800;
-    // Skip label entirely if country is truly tiny (< this px²) — no room for even a dot
     const MIN_VISIBLE = 60;
     const fontSize = 8;
+    // Exclude the headline area + a small margin
+    const hlEl = document.getElementById("map-headline");
+    const headlineBottom = hlEl ? hlEl.getBoundingClientRect().bottom + 10 : 80;
     ctx.save();
     ctx.font=`300 ${fontSize}px Inter,system-ui,sans-serif`;
     ctx.textAlign="center"; ctx.textBaseline="middle";

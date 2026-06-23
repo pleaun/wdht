@@ -281,6 +281,10 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
     <button id="panel-close" onclick="closePanel()">✕</button>
   </div>
   <div id="panel-body">
+    <div class="panel-section panel-full" id="section-policy">
+      <div class="panel-section-title">Transition Away Policy Status</div>
+      <div id="panel-policy"></div>
+    </div>
     <div class="panel-section">
       <div class="panel-section-title">Commitments</div>
       <div id="panel-commitments"></div>
@@ -289,10 +293,6 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
       <div class="panel-section-title">Transition Planning</div>
       <div id="panel-transition"></div>
     </div>
-    <div class="panel-section panel-full">
-      <div class="panel-section-title">Energy System</div>
-      <div id="panel-energy"></div>
-    </div>
     <div class="panel-section panel-full" id="section-production">
       <div class="panel-section-title">Fossil Fuel Production</div>
       <div id="panel-production"></div>
@@ -300,6 +300,14 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
     <div class="panel-section panel-full" id="section-consumption">
       <div class="panel-section-title">Fossil Fuel Consumption</div>
       <div id="panel-consumption"></div>
+    </div>
+    <div class="panel-section panel-full" id="section-energy">
+      <div class="panel-section-title">Energy System</div>
+      <div id="panel-energy"></div>
+    </div>
+    <div class="panel-section panel-full" id="section-financing">
+      <div class="panel-section-title">Public Financing</div>
+      <div id="panel-financing"></div>
     </div>
     <div class="panel-section panel-full" id="section-news">
       <div class="panel-section-title">News</div>

@@ -1204,7 +1204,7 @@ function runSequence(){
       if(ci>=totalIslands){afterDone(isls);return;}
       if(ii<isls.length){isls[ii].style.transition='opacity 0.9s ease-in-out';isls[ii].style.opacity='1';ii++;}
       ci++;document.getElementById('cnt').textContent=lit+ci;updateStatCounters(lit+ci);
-      seqTimer=setTimeout(lightOne,18+Math.random()*8);
+      seqTimer=setTimeout(lightOne,82+Math.random()*20);
     }
     lightOne();
   }

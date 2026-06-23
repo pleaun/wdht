@@ -1165,9 +1165,23 @@ function updateCityMarkers(){
     g.setAttribute("transform",`translate(${px},${py})`);
     g.setAttribute("opacity","0");
     g.dataset.name=city.name;
+    // Green blob (same as island blobs)
+    const cgradId="cg"+Math.random().toString(36).slice(2);
+    let cdefsEl=svg.querySelector("defs");
+    if(!cdefsEl){cdefsEl=document.createElementNS("http://www.w3.org/2000/svg","defs");svg.prepend(cdefsEl);}
+    const crg=document.createElementNS("http://www.w3.org/2000/svg","radialGradient");
+    crg.setAttribute("id",cgradId);crg.setAttribute("cx","50%");crg.setAttribute("cy","50%");crg.setAttribute("r","50%");
+    [[0,"0.7"],[45,"0.25"],[100,"0"]].forEach(([o,op])=>{
+      const s=document.createElementNS("http://www.w3.org/2000/svg","stop");
+      s.setAttribute("offset",o+"%");s.setAttribute("stop-color","#19cd9b");s.setAttribute("stop-opacity",op);crg.appendChild(s);
+    });
+    cdefsEl.appendChild(crg);
+    const cblob=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    cblob.setAttribute("r","16");cblob.setAttribute("fill",`url(#${cgradId})`);cblob.setAttribute("class","idot-outer");
+    g.appendChild(cblob);
     // Center dot
     const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
-    dot.setAttribute("r","1.5");dot.setAttribute("fill","rgba(25,205,155,1)");
+    dot.setAttribute("r","1.5");dot.setAttribute("fill","#19cd9b");
     g.appendChild(dot);
     // Pulsing ring
     const ring=document.createElementNS("http://www.w3.org/2000/svg","circle");
@@ -1178,8 +1192,8 @@ function updateCityMarkers(){
     // Label to the right
     const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
     lbl.setAttribute("x","12");lbl.setAttribute("y","4");
-    lbl.setAttribute("fill","rgba(255,255,255,0.88)");
-    lbl.setAttribute("font-family","Roboto,Arial,sans-serif");
+    lbl.setAttribute("fill","#33367c");
+    lbl.setAttribute("font-family","Inter,system-ui,sans-serif");
     lbl.setAttribute("font-size","10");lbl.setAttribute("font-weight","700");
     lbl.textContent=city.label||city.name;
     g.appendChild(lbl);

@@ -1217,12 +1217,12 @@ function runSequence(){
         document.getElementById("cnt").textContent=lit;updateStatCounters(lit);
         // Show city marker when Colombia (first) lights up
         if(i===0) showCityMarker("Santa Marta");
-        i++;seqTimer=setTimeout(lightNext,18+Math.random()*8);
+        i++;seqTimer=setTimeout(lightNext,82+Math.random()*20);
       } else {
         phase="islands";i=0;
         lightIslands(isls=>{
           lit+=totalIslands;phase="part2";lightNext._isls=isls;
-          seqTimer=setTimeout(lightNext,18+Math.random()*8);
+          seqTimer=setTimeout(lightNext,82+Math.random()*20);
         });
       }
     } else if(phase==="part2"){
@@ -1230,7 +1230,7 @@ function runSequence(){
       addTrans(part2[i],0,1,400);
       if(!part2[i].nocount)lit++;
       document.getElementById("cnt").textContent=lit;updateStatCounters(lit);
-      i++;seqTimer=setTimeout(lightNext,18+Math.random()*8);
+      i++;seqTimer=setTimeout(lightNext,82+Math.random()*20);
     }
   }
 

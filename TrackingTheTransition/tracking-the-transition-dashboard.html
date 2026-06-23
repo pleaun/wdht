@@ -1470,15 +1470,10 @@ function openPanel(name){
   const dname = getDisplayName(name);
   const flagUrl = getFlagUrl(name);
   const status = _statusMap[name] || _statusMap[Object.entries(NAME_MAP).find(([,t])=>t===name)?.[0]] || "blue";
-  const statusLabels={green:"Joined the Coalition",blue:"Not yet joined",red:"Not joined",yellow:"Observer"};
-  const statusColors={green:"#2ecc8a",blue:"rgba(255,255,255,0.4)",red:"#e8365a",yellow:"#f5c518"};
-
   const flagEl=document.getElementById("panel-flag");
   flagEl.src=flagUrl||""; flagEl.style.display=flagUrl?"block":"none";
   document.getElementById("panel-name").textContent=dname;
-  const statusEl=document.getElementById("panel-status");
-  statusEl.textContent=statusLabels[status]||status;
-  statusEl.style.color=statusColors[status]||"#fff";
+  document.getElementById("panel-status").textContent="";
 
   const com = _commitments[name] || _commitments[Object.entries(NAME_MAP).find(([,t])=>t===name)?.[0]] || {};
 

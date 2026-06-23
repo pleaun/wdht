@@ -790,6 +790,7 @@ function buildPaths(){
     const cGreen = cStatus==="green";
     const cRed   = cStatus==="red";
     const cYellow= cStatus==="yellow";
+    const cent = d3.geoCentroid(f);
     countries.push({
       path2d:    new Path2D(d),
       feature:   f,
@@ -798,6 +799,7 @@ function buildPaths(){
       isYellow:  cYellow,
       nocount:   cName==="Greenland"||cRed||cYellow,
       name:      cName,
+      centLatLon:cent,
       lit:       false, alpha:0,
       pulsePhase:Math.random()*Math.PI*2,
       pulseSpeed:0.00018+Math.random()*0.00012,

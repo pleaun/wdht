@@ -1638,6 +1638,8 @@ document.addEventListener("keydown", e=>{ if(e.key==="Escape") closePanel(); });
 
 
 // ─── Touch pan + pinch zoom ────────────────────────────────────
+let showCountryNames=false;
+function toggleCountryNames(el){ showCountryNames=!showCountryNames; el.classList.toggle('active',showCountryNames); }
 let panX=0, panY=0;
 let mapScale=('ontouchstart' in window)?2.2:1.0;
 const MIN_SCALE=0.7, MAX_SCALE=6.0;

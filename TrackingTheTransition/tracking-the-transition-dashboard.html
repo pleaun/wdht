@@ -51,6 +51,21 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
   border:1px solid #d6d7e5;border-radius:4px;color:#8586b0;
   padding:1px 5px;font-size:11px;letter-spacing:0.05em;
 }
+#name-toggle{
+  position:absolute;top:16px;right:16px;z-index:12;
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border:1px solid #d6d7e5;border-radius:20px;
+  padding:6px 12px 6px 10px;cursor:pointer;
+  font-family:'Inter',system-ui,sans-serif;font-size:12px;color:#8586b0;
+  user-select:none;box-shadow:0 2px 8px rgba(51,54,124,0.08);
+  transition:color 0.2s;
+}
+#name-toggle:hover{color:#33367c;}
+.nt-pill{width:28px;height:16px;background:#eaeaf1;border-radius:8px;position:relative;transition:background 0.2s;flex-shrink:0;}
+.nt-pill::after{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.15);}
+#name-toggle.active{color:#33367c;}
+#name-toggle.active .nt-pill{background:#19cd9b;}
+#name-toggle.active .nt-pill::after{left:14px;}
 #version-tag{
   position:absolute;
   bottom:max(clamp(10px,3vw,30px), env(safe-area-inset-bottom, 10px));

@@ -941,6 +941,38 @@ function drawFrame(ts){
   offBaseCtx.drawImage(offTex2,0,0);
   offBaseCtx.restore();
 
+  // 2b. Redraw colored country borders AFTER texture so they stay crisp
+  for(const c of countries){
+    if(!c.isGreen||(c.alpha<=0&&!c.lit)) continue;
+    const ab=c.lit?1:c.alpha;
+    offBaseCtx.save();
+    offBaseCtx.globalAlpha=ab;
+    offBaseCtx.strokeStyle="#0a8a68";
+    offBaseCtx.lineWidth=1.6;
+    offBaseCtx.stroke(c.path2d);
+    offBaseCtx.restore();
+  }
+  for(const c of countries){
+    if(!c.isRed||(c.alpha<=0&&!c.lit)) continue;
+    const ab=c.lit?1:c.alpha;
+    offBaseCtx.save();
+    offBaseCtx.globalAlpha=ab;
+    offBaseCtx.strokeStyle="rgba(180,20,55,0.5)";
+    offBaseCtx.lineWidth=0.7;
+    offBaseCtx.stroke(c.path2d);
+    offBaseCtx.restore();
+  }
+  for(const c of countries){
+    if(!c.isYellow||(c.alpha<=0&&!c.lit)) continue;
+    const ab=c.lit?1:c.alpha;
+    offBaseCtx.save();
+    offBaseCtx.globalAlpha=ab;
+    offBaseCtx.strokeStyle="rgba(160,120,0,0.5)";
+    offBaseCtx.lineWidth=0.7;
+    offBaseCtx.stroke(c.path2d);
+    offBaseCtx.restore();
+  }
+
   // 3. Green countries
   for(const c of countries){
     if(!c.isGreen||(c.alpha<=0&&!c.lit)) continue;

@@ -1024,22 +1024,33 @@ function drawFrame(ts){
   // 5. Country names overlay
   if(showCountryNames){
     const cx2=w/2, cy2=h/2;
+    const MIN_AREA = 3000; // px² at mapScale=1; scales with zoom
     ctx.save();
     ctx.textAlign="center"; ctx.textBaseline="middle";
     for(const c of countries){
-      if(!c.centLatLon) continue;
+      if(!c.centLatLon || !c.projArea) continue;
+      const visArea = c.projArea * mapScale * mapScale;
+      if(visArea < MIN_AREA) continue;
       const pt=proj(c.centLatLon); if(!pt) continue;
       const sx=cx2+(pt[0]-cx2)*mapScale+panX;
       const sy=cy2+(pt[1]-cy2)*mapScale+panY;
-      if(sx<0||sx>w||sy<0||sy>h) continue;
+      if(sx<10||sx>w-10||sy<10||sy>h-10) continue;
       const label=getDisplayName(c.name);
-      const fontSize=Math.max(7, Math.min(11, 9*mapScale));
+      // Font size scales gently with country size, capped 8–12px
+      const fontSize=Math.max(8, Math.min(12, 8 + Math.log(visArea/MIN_AREA)*1.2));
       ctx.font=`600 ${fontSize}px Inter,system-ui,sans-serif`;
-      if(c.isGreen){
-        ctx.fillStyle="rgba(255,255,255,0.92)";
+      const tm=ctx.measureText(label);
+      const tw=tm.width+8, th=fontSize+6;
+      // Pill background
+      const bgAlpha = c.isGreen ? 0.25 : 0.55;
+      ctx.fillStyle=`rgba(255,255,255,${bgAlpha})`;
+      if(ctx.roundRect){
+        ctx.beginPath(); ctx.roundRect(sx-tw/2,sy-th/2,tw,th,3); ctx.fill();
       } else {
-        ctx.fillStyle="rgba(133,134,176,0.75)";
+        ctx.fillRect(sx-tw/2,sy-th/2,tw,th);
       }
+      // Text
+      ctx.fillStyle = c.isGreen ? "rgba(255,255,255,0.95)" : "rgba(51,54,124,0.75)";
       ctx.fillText(label, sx, sy);
     }
     ctx.restore();

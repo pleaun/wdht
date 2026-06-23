@@ -975,14 +975,7 @@ function drawFrame(ts){
     offGreenCtx.restore();
   }
 
-  // 3b. Hover stroke — draw on offGreen so it composites with glow
-  if(hoveredCountry && hoveredCountry.path2d){
-    const hc = hoveredCountry;
-    const ctx3 = hc.isGreen ? offGreenCtx : offBaseCtx;
-    ctx3.strokeStyle = hc.isGreen ? "#0a8a68" : "#8586b0";
-    ctx3.lineWidth   = 1.2;
-    ctx3.stroke(hc.path2d);
-  }
+  // 3b. Hover stroke — drawn on main ctx after composite (see step 4b)
 
   // 3c. Selected country pulsing outline
   if(selectedCountry && selectedCountry.path2d){

@@ -1017,7 +1017,31 @@ function drawFrame(ts){
   ctx.drawImage(offBase, srcX, srcY, srcW, srcH, 0, 0, w, h);
   ctx.drawImage(offGreen, srcX, srcY, srcW, srcH, 0, 0, w, h);
 
-  // 5. Trail — disabled
+  // 5. Country names overlay
+  if(showCountryNames){
+    const cx2=w/2, cy2=h/2;
+    ctx.save();
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    for(const c of countries){
+      if(!c.centLatLon) continue;
+      const pt=proj(c.centLatLon); if(!pt) continue;
+      const sx=cx2+(pt[0]-cx2)*mapScale+panX;
+      const sy=cy2+(pt[1]-cy2)*mapScale+panY;
+      if(sx<0||sx>w||sy<0||sy>h) continue;
+      const label=getDisplayName(c.name);
+      const fontSize=Math.max(7, Math.min(11, 9*mapScale));
+      ctx.font=`600 ${fontSize}px Inter,system-ui,sans-serif`;
+      if(c.isGreen){
+        ctx.fillStyle="rgba(255,255,255,0.92)";
+      } else {
+        ctx.fillStyle="rgba(133,134,176,0.75)";
+      }
+      ctx.fillText(label, sx, sy);
+    }
+    ctx.restore();
+  }
+
+  // 5b. Trail — disabled
   // ctx.save(); ... ctx.restore();
 }
 

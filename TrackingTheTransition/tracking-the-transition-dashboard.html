@@ -1089,83 +1089,86 @@ function drawFrame(ts){
   // 5. Country names overlay
   if(showCountryNames){
     const cx2=w/2, cy2=h/2;
-    const LARGE_AREA = 1200; // px² — below this gets a leader line; above = label at centroid
-    const fontSize = 9;
+    // Countries with projArea*scale² above this threshold get label at centroid; below → leader line
+    const LEADER_THRESHOLD = 1800;
+    // Skip label entirely if country is truly tiny (< this px²) — no room for even a dot
+    const MIN_VISIBLE = 60;
+    const fontSize = 8;
     ctx.save();
     ctx.font=`300 ${fontSize}px Inter,system-ui,sans-serif`;
     ctx.textAlign="center"; ctx.textBaseline="middle";
 
-    // Collect visible label positions to detect overlaps
-    const placed = []; // {x,y,tw,th,lx,ly,label,useLeader}
+    const placed = [];
 
     for(const c of countries){
       if(!c.centLatLon || !c.projArea) continue;
       const pt=proj(c.centLatLon); if(!pt) continue;
       const sx=cx2+(pt[0]-cx2)*mapScale+panX;
       const sy=cy2+(pt[1]-cy2)*mapScale+panY;
-      // Skip if centroid is off-screen
-      if(sx<-40||sx>w+40||sy<-40||sy>h+40) continue;
-      const label=getDisplayName(c.name);
-      const tw=ctx.measureText(label).width+6;
-      const th=fontSize+4;
+      if(sx<-60||sx>w+60||sy<-60||sy>h+60) continue;
       const visArea = c.projArea * mapScale * mapScale;
-      const useLeader = visArea < LARGE_AREA;
+      if(visArea < MIN_VISIBLE) continue;
+      const label=getDisplayName(c.name);
+      const tw=ctx.measureText(label).width+4;
+      const th=fontSize+3;
+      const useLeader = visArea < LEADER_THRESHOLD;
 
-      // For small countries push label outward from centroid
       let lx=sx, ly=sy;
       if(useLeader){
-        // Try to find a direction that doesn't overlap existing labels
-        const offsets=[[1,-1],[1,1],[-1,-1],[-1,1],[1,0],[-1,0],[0,-1],[0,1]];
-        const dist=Math.max(10, Math.sqrt(visArea)*0.4+6);
+        // Fixed short offset — prefer right, then diagonal, then left
+        const LEADER_LEN = 14;
+        const offsets=[[1,0],[1,-1],[1,1],[-1,0],[-1,-1],[-1,1],[0,-1],[0,1]];
         let best=null, bestScore=Infinity;
         for(const [dx,dy] of offsets){
-          const tx=sx+dx*dist*2, ty=sy+dy*dist*1.5;
+          const norm=Math.sqrt(dx*dx+dy*dy);
+          const tx=sx+dx/norm*LEADER_LEN, ty=sy+dy/norm*LEADER_LEN;
           if(tx<tw/2+2||tx>w-tw/2-2||ty<th/2+2||ty>h-th/2-2) continue;
-          // Score by overlap count with placed labels
           let score=0;
           for(const p of placed){
-            const ox=Math.abs(tx-p.lx)-( tw/2+p.tw/2);
-            const oy=Math.abs(ty-p.ly)-(th/2+p.th/2);
-            if(ox<0&&oy<0) score+=1;
+            const ox=Math.abs(tx-p.lx)-(tw/2+p.tw/2+1);
+            const oy=Math.abs(ty-p.ly)-(th/2+p.th/2+1);
+            if(ox<0&&oy<0) score+=2;
           }
           if(score<bestScore){bestScore=score;best=[tx,ty];}
         }
         if(best){lx=best[0];ly=best[1];}
-        else{lx=sx+(sx>w/2?1:-1)*20;ly=sy+(sy>h/2?1:-1)*15;}
+        else{lx=sx+14;ly=sy;}
       }
-      // Clamp label into canvas
       lx=Math.max(tw/2+2,Math.min(w-tw/2-2,lx));
       ly=Math.max(th/2+2,Math.min(h-th/2-2,ly));
-      placed.push({sx,sy,tw,th,lx,ly,label,useLeader,isGreen:c.isGreen,visArea});
+      placed.push({sx,sy,tw,th,lx,ly,label,useLeader,visArea});
     }
 
-    // Draw leader lines first (below text)
+    // Leader lines — short, 1px, clear Planet Blue
     ctx.lineCap="round";
     for(const p of placed){
       if(!p.useLeader) continue;
       const dx=p.lx-p.sx, dy=p.ly-p.sy;
       const dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<4) continue;
-      // Stop line a bit before anchor and label box
-      const anchorR=Math.max(2,Math.sqrt(p.visArea)*0.15);
-      const t0=anchorR/dist, t1=1-(p.th*0.6)/dist;
-      if(t0>=t1) continue;
+      if(dist<5) continue;
+      // Small anchor dot
       ctx.beginPath();
-      ctx.moveTo(p.sx+dx*t0, p.sy+dy*t0);
+      ctx.arc(p.sx, p.sy, 1.2, 0, Math.PI*2);
+      ctx.fillStyle="rgba(51,54,124,0.6)";
+      ctx.fill();
+      // Line — stop just before label
+      const t1=1-(p.th*0.55)/dist;
+      if(t1<=0) continue;
+      ctx.beginPath();
+      ctx.moveTo(p.sx+dx*0.15, p.sy+dy*0.15);
       ctx.lineTo(p.sx+dx*t1, p.sy+dy*t1);
-      ctx.strokeStyle="rgba(51,54,124,0.35)";
-      ctx.lineWidth=0.6;
+      ctx.strokeStyle="rgba(51,54,124,0.55)";
+      ctx.lineWidth=0.8;
       ctx.stroke();
     }
 
-    // Draw labels
+    // Labels — thin white outline, Planet Blue text
     for(const p of placed){
-      // Subtle white halo for readability
-      ctx.strokeStyle="rgba(255,255,255,0.85)";
-      ctx.lineWidth=2.5;
+      ctx.strokeStyle="rgba(255,255,255,0.7)";
+      ctx.lineWidth=1.8;
       ctx.lineJoin="round";
       ctx.strokeText(p.label, p.lx, p.ly);
-      ctx.fillStyle="rgba(51,54,124,0.82)";
+      ctx.fillStyle="rgba(51,54,124,0.85)";
       ctx.fillText(p.label, p.lx, p.ly);
     }
     ctx.restore();

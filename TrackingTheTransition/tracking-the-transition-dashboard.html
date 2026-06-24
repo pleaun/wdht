@@ -842,30 +842,9 @@ function buildPaths(){
   countries=[];
   const features=topojson.feature(_TOPO,_TOPO.objects.countries).features
     .filter(f=>f.properties.name!=="Antarctica");
-  // Stitch antimeridian-wrapped sub-paths back to the left side by shifting x by -w
-  function stitchWrappedPaths(pathStr, threshold, canvasW){
-    const parts=pathStr.split(/(?=M)/);
-    return parts.map(part=>{
-      if(!part) return part;
-      const nums=part.match(/-?\d+\.?\d*/g);
-      if(!nums||nums.length<2) return part;
-      let sumX=0,cnt=0;
-      for(let i=0;i<nums.length;i+=2){sumX+=parseFloat(nums[i]);cnt++;}
-      if(cnt===0||(sumX/cnt)<threshold) return part;
-      // Translate all x coords by -canvasW to bring to left side
-      let i=0;
-      return part.replace(/-?\d+\.?\d*/g, tok=>{
-        const val=parseFloat(tok);
-        const shifted = (i%2===0) ? (val-canvasW) : val;
-        i++; return shifted.toFixed(2);
-      });
-    }).join('');
-  }
-
   for(const f of features){
     let d=pathFn(f); if(!d) continue;
     const cName=f.properties.name||"";
-    if(cName==="United States of America") d=stitchWrappedPaths(d, w*0.75, w);
     const cStatus=_statusMap[cName]||(Object.entries(NAME_MAP).find(([,t])=>t===cName)?_statusMap[Object.entries(NAME_MAP).find(([,t])=>t===cName)[0]]:null)||( f.properties.green?"green":"blue");
     const cGreen = cStatus==="green";
     const cRed   = cStatus==="red";

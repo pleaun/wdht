@@ -1405,10 +1405,9 @@ function updateCityMarkers(){
     if(!cdefsEl){cdefsEl=document.createElementNS("http://www.w3.org/2000/svg","defs");svg.prepend(cdefsEl);}
     const crg=document.createElementNS("http://www.w3.org/2000/svg","radialGradient");
     crg.setAttribute("id",cgradId);crg.setAttribute("cx","50%");crg.setAttribute("cy","50%");crg.setAttribute("r","50%");
-    // Darker green so blob is visible on green country backgrounds
-    [[0,"0.85"],[45,"0.35"],[100,"0"]].forEach(([o,op])=>{
+    [[0,"0.6"],[40,"0.2"],[100,"0"]].forEach(([o,op])=>{
       const s=document.createElementNS("http://www.w3.org/2000/svg","stop");
-      s.setAttribute("offset",o+"%");s.setAttribute("stop-color","#0a8a68");s.setAttribute("stop-opacity",op);crg.appendChild(s);
+      s.setAttribute("offset",o+"%");s.setAttribute("stop-color","#19cd9b");s.setAttribute("stop-opacity",op);crg.appendChild(s);
     });
     cdefsEl.appendChild(crg);
     const cblob=document.createElementNS("http://www.w3.org/2000/svg","circle");

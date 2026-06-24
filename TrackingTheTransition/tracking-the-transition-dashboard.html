@@ -1532,8 +1532,8 @@ function updateIslandSVG(){
       const svgW=parseInt(svg.getAttribute("width")||"9999");
       let lbx,lby,anchor;
       if(isTuvalu){
-        // Tuvalu: always centered below the dot
-        lbx=0; lby=16; anchor="middle";
+        // Tuvalu: always centered below the dot, with a few px margin
+        lbx=0; lby=22; anchor="middle";
       } else {
         // Other islands: collision-avoiding placement
         const offsets=[[10,-4],[-estW-10,-4],[-(estW/2),-14],[-(estW/2),14]];

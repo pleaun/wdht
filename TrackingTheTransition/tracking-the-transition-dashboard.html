@@ -1485,7 +1485,21 @@ function updateIslandSVG(){
       lbl.setAttribute("paint-order","stroke");lbl.setAttribute("stroke","rgba(255,255,255,0.7)");lbl.setAttribute("stroke-width","1.8");lbl.setAttribute("stroke-linejoin","round");
       if(isTuvalu){ lbl.setAttribute("font-weight","700"); lbl.setAttribute("font-size","10"); }
       lbl.setAttribute("visibility", (isTuvalu || showCountryNames) ? "visible" : "hidden");
-      lbl.textContent=getDisplayName(isl.name);g.appendChild(lbl);
+      const lblText=getDisplayName(isl.name);
+      lbl.textContent=lblText;
+      // Collision avoidance: try right, then left, then above, then below
+      const estW=lblText.length*EST_CHAR_W+4;
+      const offsets=[[10,-4],[-estW-10,-4],[-(estW/2),-14],[ -(estW/2),14]];
+      let lbx=10,lby=4,anchor="start";
+      for(const [ox,oy] of offsets){
+        const bx=px+ox, by=py+oy;
+        const hit=placedLabels.some(p=>bx<p.x+p.w+2&&bx+estW>p.x-2&&by<p.y+p.h+2&&by+EST_H>p.y-2);
+        if(!hit){lbx=ox;lby=oy+EST_H*0.4;anchor=ox<0?"end":"start";break;}
+      }
+      lbl.setAttribute("x",String(lbx));lbl.setAttribute("y",String(lby));
+      lbl.setAttribute("text-anchor",anchor);
+      placedLabels.push({x:px+lbx,y:py+lby-EST_H,w:estW,h:EST_H});
+      g.appendChild(lbl);
     }
     svg.appendChild(g);
   }

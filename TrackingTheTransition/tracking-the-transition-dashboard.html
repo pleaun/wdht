@@ -1438,6 +1438,9 @@ function updateIslandSVG(){
   if(!proj) return;
   const svg=document.getElementById("islands");
   svg.querySelectorAll(".idot").forEach(el=>el.remove());
+  // Track placed label boxes for collision avoidance: {x,y,w,h}
+  const placedLabels=[];
+  const EST_CHAR_W=6, EST_H=11; // approx label size at font-size 8–10px
   for(const isl of SMALL_ISLANDS){
     const islStatus = _statusMap[isl.name] || "blue";
     if(islStatus==="blue") continue; // visa bara icke-blå öar

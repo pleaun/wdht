@@ -1161,22 +1161,7 @@ function drawFrame(ts){
         }
         if(best){lx=best[0];ly=best[1];}
         else{lx=sx+LEADER_LEN;ly=sy;}
-      } else {
-        // Large country: nudge away from already-placed labels
-        for(let iter=0;iter<4;iter++){
-          let fx=0,fy=0;
-          for(const p of placed){
-            const ox=Math.abs(lx-p.lx)-(tw/2+p.tw/2+2);
-            const oy=Math.abs(ly-p.ly)-(th/2+p.th/2+2);
-            if(ox<0&&oy<0){
-              const dx=lx-p.lx||0.1, dy=ly-p.ly||0.1;
-              const d=Math.sqrt(dx*dx+dy*dy)||1;
-              fx+=dx/d*2; fy+=dy/d*2;
-            }
-          }
-          lx+=fx; ly+=fy;
-        }
-      }
+      } // large countries: label stays at centroid, no nudge
       lx=Math.max(tw/2+2,Math.min(w-tw/2-2,lx));
       ly=Math.max(Math.max(th/2+2, headlineBottom),Math.min(h-th/2-2,ly));
 

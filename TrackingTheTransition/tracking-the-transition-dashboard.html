@@ -209,6 +209,19 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
 .rating-sufficient{background:#e0faf3;color:#0e9e72;}
 .stat-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
 .ndc-note{font-size:11px;color:#8586b0;margin-top:6px;line-height:1.5;}
+.row-link{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;background:#eaeaf1;color:#8586b0;font-size:10px;text-decoration:none;margin-left:5px;vertical-align:middle;transition:background 0.15s,color 0.15s;}
+.row-link:hover{background:#19cd9b;color:#fff;}
+/* DRAFT watermark */
+#panel-draft{
+  position:absolute;inset:0;pointer-events:none;z-index:2;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+#panel-draft span{
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:clamp(60px,10vw,110px);font-weight:900;
+  color:rgba(200,202,220,0.22);letter-spacing:0.1em;
+  transform:rotate(-45deg);white-space:nowrap;user-select:none;
+}
 /* news section spans both cols */
 #section-news{grid-column:1/-1;}
 

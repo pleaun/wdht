@@ -842,8 +842,23 @@ function buildPaths(){
   countries=[];
   const features=topojson.feature(_TOPO,_TOPO.objects.countries).features
     .filter(f=>f.properties.name!=="Antarctica");
+  // Filter sub-paths from a path string whose average x exceeds a threshold
+  // Used to remove antimeridian-wrapped Alaska slivers from USA
+  function filterPathsByX(pathStr, maxAvgX){
+    const parts=pathStr.split(/(?=M)/);
+    return parts.filter(part=>{
+      const nums=part.match(/-?\d+\.?\d*/g);
+      if(!nums||nums.length<2) return true;
+      let sumX=0,cnt=0;
+      for(let i=0;i<nums.length;i+=2){sumX+=parseFloat(nums[i]);cnt++;}
+      return cnt===0||(sumX/cnt)<maxAvgX;
+    }).join('');
+  }
+
   for(const f of features){
-    const d=pathFn(f); if(!d) continue;
+    let d=pathFn(f); if(!d) continue;
+    const cName=f.properties.name||"";
+    if(cName==="United States of America") d=filterPathsByX(d, w*0.75);
     const cName=f.properties.name||"";
     const cStatus=_statusMap[cName]||(Object.entries(NAME_MAP).find(([,t])=>t===cName)?_statusMap[Object.entries(NAME_MAP).find(([,t])=>t===cName)[0]]:null)||( f.properties.green?"green":"blue");
     const cGreen = cStatus==="green";

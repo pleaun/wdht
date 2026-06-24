@@ -1632,11 +1632,16 @@ function openPanel(name){
   // Transition planning with link icons
   const linkIcon = url => url ? ` <a href="${url}" target="_blank" rel="noopener" class="row-link" title="Open source">&#x2197;</a>` : '';
   const transRows = TRANSITION_LABELS.map(([key,lbl])=>{
-    const {cls,sym}=commitIcon(com[key]||"");
+    const val = com[key]||"";
+    const {cls,sym}=commitIcon(val);
     const url = key==='taff' ? com.taffLink : key==='ndc' ? com.ndcLink : '';
-    return `<div class="commitment-row">
+    const statusText = val ? `: ${val}` : '';
+    const noteHtml = key==='ndc' && com.ndcNote
+      ? `<div class="ndc-note">${com.ndcNote}</div>` : '';
+    return `<div class="commitment-row" style="flex-wrap:wrap">
       <span class="commitment-icon ${cls}">${sym}</span>
-      <span class="commitment-label">${lbl}${linkIcon(url)}</span>
+      <span class="commitment-label">${lbl}${statusText}${linkIcon(url)}</span>
+      ${noteHtml}
     </div>`;
   }).join('');
   document.getElementById("panel-transition").innerHTML = transRows;

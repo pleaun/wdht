@@ -1248,8 +1248,8 @@ function showStatic(){
   const greenIslands=ISLAND_NATIONS.filter(n=>(_statusMap[n]&&_statusMap[n]!=="blue"));
   const counted=countries.filter(c=>(c.isGreen||c.isRed||c.isYellow)&&!c.nocount).length+greenIslands.length;
   document.getElementById("cnt").textContent=counted;
-  document.getElementById("cnt-pop").textContent=parseFloat(_copy.population||0).toFixed(1)+"%";
-  document.getElementById("cnt-oil").textContent=parseFloat(_copy.oilprod||0).toFixed(1)+"%";
+  document.getElementById("cnt-pop").textContent=Math.round(parseFloat(_copy.population||0))+"%";
+  document.getElementById("cnt-oil").textContent=Math.round(parseFloat(_copy.oilprod||0))+"%";
 }
 
 function runSequence(){

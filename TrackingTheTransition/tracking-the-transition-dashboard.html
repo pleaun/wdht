@@ -1271,8 +1271,8 @@ function runSequence(){
     const ratio=totalAnimated>0?Math.min(litNow/totalAnimated,1):0;
     const pop=parseFloat(_copy.population)||0;
     const oil=parseFloat(_copy.oilprod)||0;
-    document.getElementById("cnt-pop").textContent=(pop*ratio).toFixed(1)+"%";
-    document.getElementById("cnt-oil").textContent=(oil*ratio).toFixed(1)+"%";
+    document.getElementById("cnt-pop").textContent=Math.round(pop*ratio)+"%";
+    document.getElementById("cnt-oil").textContent=Math.round(oil*ratio)+"%";
   }
 
   function lightIslands(afterDone){

@@ -1419,22 +1419,23 @@ function updateCityMarkers(){
     if(!cdefsEl){cdefsEl=document.createElementNS("http://www.w3.org/2000/svg","defs");svg.prepend(cdefsEl);}
     const crg=document.createElementNS("http://www.w3.org/2000/svg","radialGradient");
     crg.setAttribute("id",cgradId);crg.setAttribute("cx","50%");crg.setAttribute("cy","50%");crg.setAttribute("r","50%");
-    [[0,"0.6"],[40,"0.2"],[100,"0"]].forEach(([o,op])=>{
+    // Use Idea blue 60 so the blob is visible on green country backgrounds
+    [[0,"0.75"],[45,"0.3"],[100,"0"]].forEach(([o,op])=>{
       const s=document.createElementNS("http://www.w3.org/2000/svg","stop");
-      s.setAttribute("offset",o+"%");s.setAttribute("stop-color","#ffffff");s.setAttribute("stop-opacity",op);crg.appendChild(s);
+      s.setAttribute("offset",o+"%");s.setAttribute("stop-color","#66cef0");s.setAttribute("stop-opacity",op);crg.appendChild(s);
     });
     cdefsEl.appendChild(crg);
     const cblob=document.createElementNS("http://www.w3.org/2000/svg","circle");
-    cblob.setAttribute("r","16");cblob.setAttribute("fill",`url(#${cgradId})`);cblob.setAttribute("class","idot-outer");
+    cblob.setAttribute("r","18");cblob.setAttribute("fill",`url(#${cgradId})`);cblob.setAttribute("class","idot-outer");
     g.appendChild(cblob);
     // Center dot
     const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
-    dot.setAttribute("r","1.5");dot.setAttribute("fill","#19cd9b");
+    dot.setAttribute("r","2");dot.setAttribute("fill","#ffffff");
     g.appendChild(dot);
     // Pulsing ring
     const ring=document.createElementNS("http://www.w3.org/2000/svg","circle");
     ring.setAttribute("r","8");ring.setAttribute("fill","none");
-    ring.setAttribute("stroke","#19cd9b");ring.setAttribute("stroke-width","1.5");
+    ring.setAttribute("stroke","#66cef0");ring.setAttribute("stroke-width","1.5");
     ring.setAttribute("style","animation:tpulse 2s ease-in-out infinite;");
     g.appendChild(ring);
     // Label to the right

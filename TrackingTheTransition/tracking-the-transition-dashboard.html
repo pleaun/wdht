@@ -1528,21 +1528,26 @@ function updateIslandSVG(){
       lbl.setAttribute("visibility", (isTuvalu || showCountryNames) ? "visible" : "hidden");
       const lblText=getDisplayName(isl.name);
       lbl.textContent=lblText;
-      // Collision avoidance: try right, then left, then above, then below
       const estW=lblText.length*EST_CHAR_W+4;
       const svgW=parseInt(svg.getAttribute("width")||"9999");
-      const offsets=[[10,-4],[-estW-10,-4],[-(estW/2),-14],[-(estW/2),14]];
-      let lbx=10,lby=4,anchor="start";
-      for(const [ox,oy] of offsets){
-        const bx=px+ox, by=py+oy;
-        if(bx<2||bx+estW>svgW-2) continue; // stay within SVG
-        const hit=placedLabels.some(p=>bx<p.x+p.w+2&&bx+estW>p.x-2&&by<p.y+p.h+2&&by+EST_H>p.y-2);
-        if(!hit){lbx=ox;lby=oy+EST_H*0.4;anchor=ox<0?"end":"start";break;}
+      let lbx,lby,anchor;
+      if(isTuvalu){
+        // Tuvalu: always centered below the dot
+        lbx=0; lby=16; anchor="middle";
+      } else {
+        // Other islands: collision-avoiding placement
+        const offsets=[[10,-4],[-estW-10,-4],[-(estW/2),-14],[-(estW/2),14]];
+        lbx=10;lby=4;anchor="start";
+        for(const [ox,oy] of offsets){
+          const bx=px+ox, by=py+oy;
+          if(bx<2||bx+estW>svgW-2) continue;
+          const hit=placedLabels.some(p=>bx<p.x+p.w+2&&bx+estW>p.x-2&&by<p.y+p.h+2&&by+EST_H>p.y-2);
+          if(!hit){lbx=ox;lby=oy+EST_H*0.4;anchor=ox<0?"end":"start";break;}
+        }
+        const finalAbsX=px+lbx;
+        if(finalAbsX+estW>svgW-2) lbx=svgW-2-estW-px;
+        if(finalAbsX<2) lbx=2-px;
       }
-      // Final clamp so label never goes off right edge
-      const finalAbsX=px+lbx;
-      if(finalAbsX+estW>svgW-2) lbx=svgW-2-estW-px;
-      if(finalAbsX<2) lbx=2-px;
       lbl.setAttribute("x",String(lbx));lbl.setAttribute("y",String(lby));
       lbl.setAttribute("text-anchor",anchor);
       placedLabels.push({x:px+lbx,y:py+lby-EST_H,w:estW,h:EST_H});

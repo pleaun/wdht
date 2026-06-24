@@ -859,7 +859,6 @@ function buildPaths(){
     let d=pathFn(f); if(!d) continue;
     const cName=f.properties.name||"";
     if(cName==="United States of America") d=filterPathsByX(d, w*0.75);
-    const cName=f.properties.name||"";
     const cStatus=_statusMap[cName]||(Object.entries(NAME_MAP).find(([,t])=>t===cName)?_statusMap[Object.entries(NAME_MAP).find(([,t])=>t===cName)[0]]:null)||( f.properties.green?"green":"blue");
     const cGreen = cStatus==="green";
     const cRed   = cStatus==="red";

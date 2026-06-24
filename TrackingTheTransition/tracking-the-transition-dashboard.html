@@ -1574,11 +1574,12 @@ const TRANSITION_LABELS = [
 
 function commitIcon(val){
   if(!val||val==="") return {cls:"icon-na", sym:"—"};
-  const v=val.toLowerCase();
-  if(v==="yes"||v==="core"||v==="associate"||v==="full"||v==="published"||v==="submitted")
+  const v=val.toLowerCase().trim();
+  if(v==="yes"||v==="core"||v==="associate"||v==="full"||v==="published"||v==="submitted"||v==="in progress")
     return {cls:"icon-yes", sym:"✓"};
-  if(v==="no") return {cls:"icon-no", sym:"✗"};
-  if(v==="undecided"||v==="observer"||v==="in progress"||v==="pending")
+  if(v==="no"||v==="not initiated"||v==="no commitment"||v==="non-party")
+    return {cls:"icon-no", sym:"✗"};
+  if(v==="overdue"||v==="undecided"||v==="observer"||v==="pending")
     return {cls:"icon-maybe", sym:"?"};
   return {cls:"icon-maybe", sym:"?"};
 }

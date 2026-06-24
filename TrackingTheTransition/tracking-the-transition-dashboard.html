@@ -1487,9 +1487,9 @@ function updateIslandSVG(){
     if(!defsEl){defsEl=document.createElementNS("http://www.w3.org/2000/svg","defs");svg.prepend(defsEl);}
     const rg=document.createElementNS("http://www.w3.org/2000/svg","radialGradient");
     rg.setAttribute("id",gradId);rg.setAttribute("cx","50%");rg.setAttribute("cy","50%");rg.setAttribute("r","50%");
-    [[0,"0.85"],[45,"0.35"],[100,"0"]].forEach(([o,op])=>{
+    [[0,"0.7"],[45,"0.25"],[100,"0"]].forEach(([o,op])=>{
       const s=document.createElementNS("http://www.w3.org/2000/svg","stop");
-      s.setAttribute("offset",o+"%");s.setAttribute("stop-color","#0a8a68");s.setAttribute("stop-opacity",op);rg.appendChild(s);
+      s.setAttribute("offset",o+"%");s.setAttribute("stop-color","#19cd9b");s.setAttribute("stop-opacity",op);rg.appendChild(s);
     });
     defsEl.appendChild(rg);
     const blob=document.createElementNS("http://www.w3.org/2000/svg","circle");

@@ -1573,10 +1573,17 @@ function openPanel(name){
 
   document.getElementById("panel-commitments").innerHTML = renderCommitRows(COMMIT_LABELS, com);
 
-  // Transition planning + NDC note
-  let transHtml = renderCommitRows(TRANSITION_LABELS, com);
-  if(com.ndcNote) transHtml += `<div class="ndc-note">${com.ndcNote}</div>`;
-  document.getElementById("panel-transition").innerHTML = transHtml;
+  // Transition planning with link icons
+  const linkIcon = url => url ? ` <a href="${url}" target="_blank" rel="noopener" class="row-link" title="Open source">&#x2197;</a>` : '';
+  const transRows = TRANSITION_LABELS.map(([key,lbl])=>{
+    const {cls,sym}=commitIcon(com[key]||"");
+    const url = key==='taff' ? com.taffLink : key==='ndc' ? com.ndcLink : '';
+    return `<div class="commitment-row">
+      <span class="commitment-icon ${cls}">${sym}</span>
+      <span class="commitment-label">${lbl}${linkIcon(url)}</span>
+    </div>`;
+  }).join('');
+  document.getElementById("panel-transition").innerHTML = transRows;
 
   // Energy system
   const trendArrow = t => {

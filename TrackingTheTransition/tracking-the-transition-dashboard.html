@@ -1122,7 +1122,7 @@ function drawFrame(ts){
     const hlEl = document.getElementById("map-headline");
     const headlineBottom = hlEl ? hlEl.getBoundingClientRect().bottom + 10 : 80;
     ctx.save();
-    ctx.font=`300 ${fontSize}px Inter,system-ui,sans-serif`;
+    ctx.font=`300 ${fontSize}px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif`;
     ctx.textAlign="center"; ctx.textBaseline="middle";
 
     const placed = [];
@@ -1415,7 +1415,7 @@ function updateCityMarkers(){
     const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
     lbl.setAttribute("x","12");lbl.setAttribute("y","4");
     lbl.setAttribute("fill","#33367c");
-    lbl.setAttribute("font-family","Inter,system-ui,sans-serif");
+    lbl.setAttribute("font-family","-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif");
     lbl.setAttribute("font-size","10");lbl.setAttribute("font-weight","700");
     lbl.textContent=city.label||city.name;
     g.appendChild(lbl);
@@ -1492,7 +1492,7 @@ function updateIslandSVG(){
       const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
       lbl.setAttribute("class", isTuvalu ? "island-name island-name-always" : "island-name");
       lbl.setAttribute("x","10");lbl.setAttribute("y","4");lbl.setAttribute("text-anchor","start");
-      lbl.setAttribute("fill","rgba(51,54,124,0.85)");lbl.setAttribute("font-family","Inter,system-ui,sans-serif");
+      lbl.setAttribute("fill","rgba(51,54,124,0.85)");lbl.setAttribute("font-family","-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif");
       lbl.setAttribute("font-size","8");lbl.setAttribute("font-weight","300");
       lbl.setAttribute("paint-order","stroke");lbl.setAttribute("stroke","rgba(255,255,255,0.7)");lbl.setAttribute("stroke-width","1.8");lbl.setAttribute("stroke-linejoin","round");
       lbl.setAttribute("visibility", (isTuvalu || showCountryNames) ? "visible" : "hidden");

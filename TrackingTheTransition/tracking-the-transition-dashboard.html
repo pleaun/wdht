@@ -522,6 +522,9 @@ async function fetchSheet(){
       if(!name) return;
       if(status) _statusMap[name] = status;
       if(display) _displayNames[name] = display;
+      if(name==="Colombia"||name==="United States of America"||name==="United States"){
+        console.log(`[DEBUG] ${name} parts (${parts.length} cols):`, parts.map((v,i)=>v?`[${i}]=${v}`:'').filter(Boolean).join(', '));
+      }
       // BOGA: Core/Associate → treat as Yes
       const bogaRaw = parts[9]||"";
       const bogaVal = (bogaRaw==="Core"||bogaRaw==="Associate") ? "Yes" : bogaRaw||"";

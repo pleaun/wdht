@@ -537,7 +537,6 @@ async function fetchSheet(){
     const csv = await res.text();
     // Skip 4 header rows (row0=section, row1=category, row2=column names, row3=links)
     parseCSV(csv).slice(4).forEach(parts=>{
-      const parts = parseCSVLine(line);
       const name = parts[0]||"";
       const status = (parts[1]||"").toLowerCase();
       const display = parts[2]||"";

@@ -495,17 +495,39 @@ async function fetchCopy(){
   }
 }
 
-function parseCSVLine(line){
-  // Proper CSV parser: handles "quoted, fields"
-  const out=[]; let cur="", inQ=false;
-  for(let i=0;i<line.length;i++){
-    const c=line[i];
-    if(c==='"'){ inQ=!inQ; }
-    else if(c===','&&!inQ){ out.push(cur); cur=""; }
-    else cur+=c;
+// Full RFC-4180 CSV parser — handles quoted fields with embedded newlines/commas
+function parseCSV(text){
+  const rows=[], n=text.length;
+  let i=0;
+  while(i<n){
+    const row=[];
+    // parse one row
+    while(i<n){
+      if(text[i]==='"'){
+        // quoted field
+        let val=''; i++; // skip opening quote
+        while(i<n){
+          if(text[i]==='"'){
+            if(text[i+1]==='"'){val+='"';i+=2;} // escaped quote
+            else{i++;break;} // closing quote
+          } else { val+=text[i++]; }
+        }
+        row.push(val.trim());
+      } else {
+        // unquoted field
+        let val='';
+        while(i<n && text[i]!==',' && text[i]!=='\n' && text[i]!=='\r') val+=text[i++];
+        row.push(val.trim());
+      }
+      if(i<n && text[i]===','){i++;} // skip comma
+      else break; // end of row
+    }
+    // skip line ending
+    if(i<n && text[i]==='\r') i++;
+    if(i<n && text[i]==='\n') i++;
+    if(row.length>1||(row.length===1&&row[0]!=='')) rows.push(row);
   }
-  out.push(cur);
-  return out.map(s=>s.trim());
+  return rows;
 }
 
 async function fetchSheet(){
@@ -513,8 +535,8 @@ async function fetchSheet(){
     const res = await fetch(SHEET_URL, {mode:"cors",cache:"no-cache"});
     if(!res.ok) throw new Error("HTTP "+res.status);
     const csv = await res.text();
-    // Skip 3 header rows (row0=section, row1=category, row2=column names, row3=links)
-    csv.trim().split("\n").slice(4).forEach(line=>{
+    // Skip 4 header rows (row0=section, row1=category, row2=column names, row3=links)
+    parseCSV(csv).slice(4).forEach(parts=>{
       const parts = parseCSVLine(line);
       const name = parts[0]||"";
       const status = (parts[1]||"").toLowerCase();

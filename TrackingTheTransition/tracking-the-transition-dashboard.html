@@ -1679,7 +1679,6 @@ function openPanel(name){
   const energyCells = [];
   if(com.fossilFree)    energyCells.push(cell('Fossil-free electricity', pct(com.fossilFree)+(com.fossilFreeChange?` <span class="${parseFloat(com.fossilFreeChange)<0?'trend-down':'trend-up'}">${parseFloat(com.fossilFreeChange)>=0?'+':''}${parseFloat(com.fossilFreeChange).toFixed(1)}% p.a.</span>`:''), ''));
   if(com.gridIntensity) energyCells.push(cell('Grid carbon intensity', com.gridIntensity+trendArrow(com.gridTrend), ''));
-  console.log(`[PANEL] ${name}: fossilFree="${com.fossilFree}" gridIntensity="${com.gridIntensity}" energyCells=${energyCells.length} subsidies="${com.subsidies}" carbonPrice="${com.carbonPrice}"`);
   const energyEl = document.getElementById("panel-energy");
   energyEl.innerHTML = energyCells.length ? `<div class="data-grid">${energyCells.join('')}</div>` : '';
   document.getElementById("section-energy").style.display = energyCells.length ? '' : 'none';

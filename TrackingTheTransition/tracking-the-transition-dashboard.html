@@ -937,7 +937,7 @@ function drawFrame(ts){
     if(!c.isGreen||(c.alpha<=0&&!c.lit)) continue;
     const a=c.lit?1:c.alpha;
     offBaseCtx.globalAlpha=a;
-    offBaseCtx.fillStyle="#19cd9b";
+    offBaseCtx.fillStyle=c.name==="France"?"#0f9e73":"#19cd9b";
     offBaseCtx.fill(c.path2d);
     offBaseCtx.strokeStyle="#076b50";
     offBaseCtx.lineWidth=2.0;

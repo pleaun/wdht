@@ -578,6 +578,7 @@ async function fetchSheet(){
         carbonPrice:   parts[43]||"",
         carbonRating:  parts[44]||"",
         policyNote:    parts[45]||"",
+        policyScore:   parts[46]||"",
       };
     });
     _greenSet = new Set(Object.entries(_statusMap).filter(([,s])=>s==="green").map(([n])=>n));

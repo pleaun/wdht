@@ -1639,9 +1639,10 @@ function openPanel(name){
     blue:   {icon:null,      label:"Not yet joined"},
   };
   const pi = policyIcons[status] || policyIcons.blue;
+  const scoreOverlay = (status==="green" && com.policyScore) ? `<span class="policy-heart-score">${com.policyScore}</span>` : "";
   document.getElementById("panel-policy").innerHTML = pi.icon
     ? `<div class="policy-status-row">
-        <span class="policy-status-icon">${pi.icon}</span>
+        <span class="policy-status-icon">${pi.icon}${scoreOverlay}</span>
         <div>
           <div class="policy-status-label">${pi.label}</div>
           ${com.policyNote ? `<div class="policy-status-note">${com.policyNote}</div>` : ""}

@@ -1570,34 +1570,6 @@ overlay.addEventListener("click", e => {
   openPanel(hoveredCountry.name);
 });
 
-const COMMIT_LABELS = [
-  ["fft",   "Fossil Fuel Treaty Endorsement"],
-  ["boga",  "Beyond Oil and Gas Alliance"],
-  ["ppca",  "Powering Past Coal Alliance Membership"],
-  ["cetp",  "CETP (Public Finance)"],
-];
-function commitIcon(val){
-  if(!val||val==="") return {cls:"icon-na", sym:"—"};
-  const v=val.toLowerCase().trim();
-  if(v==="yes"||v==="core"||v==="associate"||v==="full"||v==="published"||v==="submitted"||v==="in progress")
-    return {cls:"icon-yes", sym:"✓"};
-  if(v==="no"||v==="not initiated"||v==="no commitment"||v==="non-party")
-    return {cls:"icon-no", sym:"✗"};
-  if(v==="overdue"||v==="undecided"||v==="observer"||v==="pending")
-    return {cls:"icon-maybe", sym:"?"};
-  return {cls:"icon-maybe", sym:"?"};
-}
-
-function renderCommitRows(labels, com){
-  return labels.map(([key,lbl])=>{
-    const {cls,sym}=commitIcon(com[key]||"");
-    return `<div class="commitment-row">
-      <span class="commitment-icon ${cls}">${sym}</span>
-      <span class="commitment-label">${lbl}</span>
-    </div>`;
-  }).join("");
-}
-
 function openPanel(name){
   const dname = getDisplayName(name);
   const flagUrl = getFlagUrl(name);

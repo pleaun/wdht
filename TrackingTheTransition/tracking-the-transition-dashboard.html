@@ -548,6 +548,12 @@ async function fetchSheet(){
       const bogaVal = (bogaRaw==="Core"||bogaRaw==="Associate") ? "Yes" : bogaRaw||"";
       _commitments[name]={
         commitmentNote: parts[3]||"",
+        planningStatus: parts[4]||"",
+        planningNote:   parts[5]||"",
+        planningSource1Text: parts[6]||"",
+        planningSource1Link: parts[7]||"",
+        planningSource2Text: parts[8]||"",
+        planningSource2Link: parts[9]||"",
         conf1: parts[3]||"",
         conf2: parts[5]||"",
         fft:   parts[7]||"",

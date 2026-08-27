@@ -540,7 +540,6 @@ async function fetchSheet(){
       const name = parts[0]||"";
       const display = parts[1]||"";
       const status = (parts[2]||"").toLowerCase();
-      const commitmentNote = parts[3]||"";
       if(!name) return;
       if(status) _statusMap[name] = status;
       if(display) _displayNames[name] = display;

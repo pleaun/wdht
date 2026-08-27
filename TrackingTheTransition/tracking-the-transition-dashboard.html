@@ -1596,12 +1596,12 @@ function openPanel(name){
   const linkIcon = url => url ? ` <a href="${url}" target="_blank" rel="noopener" class="row-link" title="Open source">&#x2197;</a>` : '';
   const SVG_TRENDUP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M8 34 L20 22 L27 29 L40 14" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 13 L40 14 L38 24" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const SVG_BULB = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M24 6a13 13 0 0 0-7 24c1.6 1.1 2 2.4 2 4h10c0-1.6.4-2.9 2-4a13 13 0 0 0-7-24Z" stroke="#8586b0" stroke-width="3" fill="none" stroke-linejoin="round"/><line x1="19" y1="39" x2="29" y2="39" stroke="#8586b0" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="44" x2="28" y2="44" stroke="#8586b0" stroke-width="3" stroke-linecap="round"/></svg>`;
-  const SVG_NOPLAN = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M11 4h18l8 8v32H11Z" stroke="#c1c2d7" stroke-width="2.5" fill="#ffffff" stroke-linejoin="round"/><path d="M29 4v8h8" stroke="#c1c2d7" stroke-width="2.5" fill="none" stroke-linejoin="round"/><line x1="11" y1="9" x2="37" y2="41" stroke="#de2251" stroke-width="5" stroke-linecap="round"/><line x1="37" y1="9" x2="11" y2="41" stroke="#de2251" stroke-width="5" stroke-linecap="round"/></svg>`;
+  const SVG_TRENDDOWN = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M8 14 L20 26 L27 19 L40 34" stroke="#de2251" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 35 L40 34 L38 24" stroke="#de2251" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const planningIcons = {
-    "on track":    {icon:SVG_TRENDUP,  label:"On Track"},
-    "in progress": {icon:SVG_BULB,     label:"In Progress"},
-    "unknown":     {icon:SVG_QUESTION, label:"Unknown"},
-    "uncommitted": {icon:SVG_NOPLAN,   label:"Uncommitted"},
+    "on track":    {icon:SVG_TRENDUP,   label:"On Track"},
+    "in progress": {icon:SVG_BULB,      label:"In Progress"},
+    "unknown":     {icon:SVG_QUESTION,  label:"Unknown"},
+    "off track":   {icon:SVG_TRENDDOWN, label:"Off Track"},
   };
   const pStatus = (com.planningStatus||"").toLowerCase().trim();
   const pi2 = planningIcons[pStatus] || planningIcons.unknown;

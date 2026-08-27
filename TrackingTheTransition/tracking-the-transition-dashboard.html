@@ -1585,7 +1585,7 @@ function openPanel(name){
   const pi = commitmentIcons[status] || commitmentIcons.blue;
   document.getElementById("panel-policy").innerHTML =
     `<div class="policy-status-row">
-        <span class="policy-status-icon">${pi.icon}</span>
+        <span class="policy-status-icon policy-status-icon-lg">${pi.icon}</span>
         <div>
           <div class="policy-status-label">${pi.label}</div>
           ${com.commitmentNote ? `<div class="policy-status-note">${com.commitmentNote}</div>` : ""}

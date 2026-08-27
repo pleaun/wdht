@@ -1032,52 +1032,58 @@ function drawFrame(ts){
     offBaseCtx.restore();
   }
 
-  // 3. Green countries
-  for(const c of countries){
-    if(!c.isGreen||(c.alpha<=0&&!c.lit)) continue;
-    const a=c.lit?1:c.alpha;
-    const pulse=Math.sin(ts*c.pulseSpeed+c.pulsePhase);
-    const fillA  =(0.72+pulse*0.07)*a;
-    const strokeA=(0.90+pulse*0.05)*a;
+  // 3. Green countries — pulse animates slowly, so this expensive multi-pass
+  // shadowBlur glow is cached and only re-rendered ~20x/sec instead of every frame.
+  if(ts-_lastGlowRedraw>=50){
+    _lastGlowRedraw=ts;
+    offGlowCtx.clearRect(0,0,w,h);
+    for(const c of countries){
+      if(!c.isGreen||(c.alpha<=0&&!c.lit)) continue;
+      const a=c.lit?1:c.alpha;
+      const pulse=Math.sin(ts*c.pulseSpeed+c.pulsePhase);
+      const fillA  =(0.72+pulse*0.07)*a;
+      const strokeA=(0.90+pulse*0.05)*a;
 
-    // Soft outer glow using shadowBlur (no bounding box artifact)
-    offGreenCtx.save();
-    offGreenCtx.shadowColor=`rgba(25,205,155,${(0.55+pulse*0.15)*a})`;
-    offGreenCtx.shadowBlur=28;
-    offGreenCtx.globalAlpha=(0.28+pulse*0.08)*a;
-    offGreenCtx.fillStyle="rgba(25,205,155,0)";
-    offGreenCtx.fill(c.path2d);
-    offGreenCtx.restore();
+      // Soft outer glow using shadowBlur (no bounding box artifact)
+      offGlowCtx.save();
+      offGlowCtx.shadowColor=`rgba(25,205,155,${(0.55+pulse*0.15)*a})`;
+      offGlowCtx.shadowBlur=28;
+      offGlowCtx.globalAlpha=(0.28+pulse*0.08)*a;
+      offGlowCtx.fillStyle="rgba(25,205,155,0)";
+      offGlowCtx.fill(c.path2d);
+      offGlowCtx.restore();
 
-    offGreenCtx.save();
-    offGreenCtx.shadowColor=`rgba(25,205,155,${(0.45+pulse*0.12)*a})`;
-    offGreenCtx.shadowBlur=22;
-    offGreenCtx.fillStyle="rgba(25,205,155,0)";
-    offGreenCtx.fill(c.path2d);
-    offGreenCtx.restore();
+      offGlowCtx.save();
+      offGlowCtx.shadowColor=`rgba(25,205,155,${(0.45+pulse*0.12)*a})`;
+      offGlowCtx.shadowBlur=22;
+      offGlowCtx.fillStyle="rgba(25,205,155,0)";
+      offGlowCtx.fill(c.path2d);
+      offGlowCtx.restore();
 
-    offGreenCtx.save();
-    offGreenCtx.shadowColor=`rgba(70,240,190,${(0.35+pulse*0.10)*a})`;
-    offGreenCtx.shadowBlur=10;
-    offGreenCtx.fillStyle="rgba(25,205,155,0)";
-    offGreenCtx.fill(c.path2d);
-    offGreenCtx.restore();
+      offGlowCtx.save();
+      offGlowCtx.shadowColor=`rgba(70,240,190,${(0.35+pulse*0.10)*a})`;
+      offGlowCtx.shadowBlur=10;
+      offGlowCtx.fillStyle="rgba(25,205,155,0)";
+      offGlowCtx.fill(c.path2d);
+      offGlowCtx.restore();
 
-    offGreenCtx.save();
-    offGreenCtx.shadowColor=`rgba(180,255,220,${(0.5+pulse*0.15)*a})`;
-    offGreenCtx.shadowBlur=4;
-    offGreenCtx.fillStyle=`rgba(25,205,155,${fillA})`;
-    offGreenCtx.fill(c.path2d);
-    offGreenCtx.restore();
+      offGlowCtx.save();
+      offGlowCtx.shadowColor=`rgba(180,255,220,${(0.5+pulse*0.15)*a})`;
+      offGlowCtx.shadowBlur=4;
+      offGlowCtx.fillStyle=`rgba(25,205,155,${fillA})`;
+      offGlowCtx.fill(c.path2d);
+      offGlowCtx.restore();
 
-    offGreenCtx.save();
-    offGreenCtx.shadowColor="rgba(25,205,155,0.95)";
-    offGreenCtx.shadowBlur=8;
-    offGreenCtx.strokeStyle=`rgba(25,205,155,${strokeA})`;
-    offGreenCtx.lineWidth=1.0;
-    offGreenCtx.stroke(c.path2d);
-    offGreenCtx.restore();
+      offGlowCtx.save();
+      offGlowCtx.shadowColor="rgba(25,205,155,0.95)";
+      offGlowCtx.shadowBlur=8;
+      offGlowCtx.strokeStyle=`rgba(25,205,155,${strokeA})`;
+      offGlowCtx.lineWidth=1.0;
+      offGlowCtx.stroke(c.path2d);
+      offGlowCtx.restore();
+    }
   }
+  offGreenCtx.drawImage(offGlow,0,0);
 
   // 3b. Hover stroke — drawn on main ctx after composite (see step 4b)
 

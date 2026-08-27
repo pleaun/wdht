@@ -1600,8 +1600,6 @@ function openPanel(name){
         </div>
        </div>`;
 
-  document.getElementById("panel-commitments").innerHTML = renderCommitRows(COMMIT_LABELS, com);
-
   // Planning
   const linkIcon = url => url ? ` <a href="${url}" target="_blank" rel="noopener" class="row-link" title="Open source">&#x2197;</a>` : '';
   const SVG_TRENDUP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48"><path d="M8 34 L20 22 L27 29 L40 14" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 13 L40 14 L38 24" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

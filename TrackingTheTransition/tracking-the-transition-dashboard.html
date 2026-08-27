@@ -543,9 +543,6 @@ async function fetchSheet(){
       if(!name) return;
       if(status) _statusMap[name] = status;
       if(display) _displayNames[name] = display;
-      // BOGA: Core/Associate → treat as Yes
-      const bogaRaw = parts[9]||"";
-      const bogaVal = (bogaRaw==="Core"||bogaRaw==="Associate") ? "Yes" : bogaRaw||"";
       _commitments[name]={
         commitmentNote: parts[3]||"",
         planningStatus: parts[4]||"",
@@ -554,12 +551,6 @@ async function fetchSheet(){
         planningSource1Link: parts[7]||"",
         planningSource2Text: parts[8]||"",
         planningSource2Link: parts[9]||"",
-        conf1: parts[3]||"",
-        conf2: parts[5]||"",
-        fft:   parts[7]||"",
-        boga:  bogaVal,
-        ppca:  parts[11]||"",
-        cetp:  parts[13]||"",
         // Fossil fuel production (cols 21-30)
         oilProdShare:  parts[21]||"", oilProdCagr:   parts[22]||"",
         coalProdShare: parts[23]||"", coalProdCagr:  parts[24]||"",

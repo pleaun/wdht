@@ -1654,22 +1654,30 @@ function openPanel(name){
 
   document.getElementById("panel-commitments").innerHTML = renderCommitRows(COMMIT_LABELS, com);
 
-  // Transition planning with link icons
+  // Planning
   const linkIcon = url => url ? ` <a href="${url}" target="_blank" rel="noopener" class="row-link" title="Open source">&#x2197;</a>` : '';
-  const transRows = TRANSITION_LABELS.map(([key,lbl])=>{
-    const val = com[key]||"";
-    const {cls,sym}=commitIcon(val);
-    const url = key==='taff' ? com.taffLink : key==='ndc' ? com.ndcLink : '';
-    const statusText = val ? `: ${val}` : '';
-    const noteHtml = key==='ndc' && com.ndcNote
-      ? `<div class="ndc-note">${com.ndcNote}</div>` : '';
-    return `<div class="commitment-row" style="flex-wrap:wrap">
-      <span class="commitment-icon ${cls}">${sym}</span>
-      <span class="commitment-label">${lbl}${statusText}${linkIcon(url)}</span>
-      ${noteHtml}
-    </div>`;
-  }).join('');
-  document.getElementById("panel-transition").innerHTML = transRows;
+  const SVG_TRENDUP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48"><path d="M8 34 L20 22 L27 29 L40 14" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 13 L40 14 L38 24" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const SVG_BULB = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48"><path d="M24 6a13 13 0 0 0-7 24c1.6 1.1 2 2.4 2 4h10c0-1.6.4-2.9 2-4a13 13 0 0 0-7-24Z" stroke="#8586b0" stroke-width="3" fill="none" stroke-linejoin="round"/><line x1="19" y1="39" x2="29" y2="39" stroke="#8586b0" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="44" x2="28" y2="44" stroke="#8586b0" stroke-width="3" stroke-linecap="round"/></svg>`;
+  const planningIcons = {
+    "on track":    {icon:SVG_TRENDUP,  label:"On Track"},
+    "in progress": {icon:SVG_BULB,     label:"In Progress"},
+    "unknown":     {icon:SVG_QUESTION, label:"Unknown"},
+    "uncommitted": {icon:SVG_WARN,     label:"Uncommitted"},
+  };
+  const pStatus = (com.planningStatus||"").toLowerCase().trim();
+  const pi2 = planningIcons[pStatus] || planningIcons.unknown;
+  const sourceRow = (text,url) => text
+    ? `<div class="policy-source-item">${text}${linkIcon(url)}</div>` : "";
+  document.getElementById("panel-transition").innerHTML =
+    `<div class="policy-status-row">
+        <span class="policy-status-icon">${pi2.icon}</span>
+        <div>
+          <div class="policy-status-label">${pi2.label}</div>
+          ${com.planningNote ? `<div class="policy-status-note">${com.planningNote}</div>` : ""}
+          ${sourceRow(com.planningSource1Text, com.planningSource1Link)}
+          ${sourceRow(com.planningSource2Text, com.planningSource2Link)}
+        </div>
+       </div>`;
 
   // Energy system
   const trendArrow = t => {

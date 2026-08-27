@@ -1118,7 +1118,7 @@ function drawFrame(ts){
     ctx2.restore();
   }
 
-  offBaseCtx.restore(); offGreenCtx.restore(); // end clip from drawFrame start
+  offBaseCtx.restore(); offGreenCtx.restore(); offGlowCtx.restore(); // end clip from drawFrame start
 
   // 4. Composite base + green (med pan+zoom för touch)
   // Compute source rect in offBase space → dest rect on screen

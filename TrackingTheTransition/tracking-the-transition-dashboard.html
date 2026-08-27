@@ -905,6 +905,7 @@ function drawFrame(ts){
   offBaseCtx.clearRect(0,0,w,h);
   offGreenCtx.clearRect(0,0,w,h);
   // Clip so antimeridian-wrapping parts of Alaska etc. don't spill to right edge
+  offGlowCtx.save(); offGlowCtx.beginPath(); offGlowCtx.rect(0,0,w,h); offGlowCtx.clip();
   offBaseCtx.save(); offBaseCtx.beginPath(); offBaseCtx.rect(0,0,w,h); offBaseCtx.clip();
   offGreenCtx.save(); offGreenCtx.beginPath(); offGreenCtx.rect(0,0,w,h); offGreenCtx.clip();
 

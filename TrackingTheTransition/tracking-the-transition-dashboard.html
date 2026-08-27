@@ -578,7 +578,6 @@ async function fetchSheet(){
         subsidiesTrend:parts[42]||"",
         carbonPrice:   parts[43]||"",
         carbonRating:  parts[44]||"",
-        policyNote:    parts[45]||"",
       };
     });
     _greenSet = new Set(Object.entries(_statusMap).filter(([,s])=>s==="green").map(([n])=>n));

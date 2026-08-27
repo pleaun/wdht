@@ -538,8 +538,8 @@ async function fetchSheet(){
     // Skip 4 header rows (row0=section, row1=category, row2=column names, row3=links)
     parseCSV(csv).slice(4).forEach(parts=>{
       const name = parts[0]||"";
-      const status = (parts[1]||"").toLowerCase();
-      const display = parts[2]||"";
+      const display = parts[1]||"";
+      const status = (parts[2]||"").toLowerCase();
       if(!name) return;
       if(status) _statusMap[name] = status;
       if(display) _displayNames[name] = display;

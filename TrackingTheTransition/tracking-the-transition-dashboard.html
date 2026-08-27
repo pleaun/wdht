@@ -821,6 +821,8 @@ function resize(){
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   offBase.width=Math.round(w); offBase.height=Math.round(h);
   offGreen.width=Math.round(w); offGreen.height=Math.round(h);
+  offGlow.width=Math.round(w); offGlow.height=Math.round(h);
+  _lastGlowRedraw=-Infinity; // force a fresh glow render at the new size
   offTex.width=Math.round(w);   offTex.height=Math.round(h);
   offTex2.width=Math.round(w);  offTex2.height=Math.round(h);
 

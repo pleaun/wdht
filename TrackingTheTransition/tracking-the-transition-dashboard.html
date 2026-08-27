@@ -1670,16 +1670,24 @@ function openPanel(name){
   finEl.innerHTML = finCells.length ? `<div class="data-grid">${finCells.join('')}</div>` : '';
   document.getElementById("section-financing").style.display = finCells.length ? '' : 'none';
 
-  // Fossil fuel production
-  const prodCells = [];
-  if(com.oilProdShare)  prodCells.push(cell('Oil production', pct(com.oilProdShare)+' of global'+cagr(com.oilProdCagr), ''));
-  if(com.coalProdShare) prodCells.push(cell('Coal production', pct(com.coalProdShare)+' of global'+cagr(com.coalProdCagr), ''));
-  if(com.gasProdShare)  prodCells.push(cell('Gas production', pct(com.gasProdShare)+' of global'+cagr(com.gasProdCagr), ''));
-  if(com.newLicenses)   prodCells.push(cell('New oil & gas licenses', com.newLicenses, com.newLicensesNote||''));
-  if(com.sanctioned)    prodCells.push(cellFull('Sanctioned projects', com.sanctioned, ''));
-  const prodEl = document.getElementById("panel-production");
-  prodEl.innerHTML = prodCells.length ? `<div class="data-grid">${prodCells.join('')}</div>` : '';
-  document.getElementById("section-production").style.display = prodCells.length ? '' : 'none';
+  // Production
+  const SVG_OILDROP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M24 5 C24 5 9 25 9 34 a15 15 0 0 0 30 0 C39 25 24 5 24 5 Z" fill="#33367c"/></svg>`;
+  const SVG_OILDROP_CROSSED = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M24 5 C24 5 9 25 9 34 a15 15 0 0 0 30 0 C39 25 24 5 24 5 Z" fill="none" stroke="#19cd9b" stroke-width="3"/><line x1="10" y1="38" x2="38" y2="10" stroke="#19cd9b" stroke-width="4" stroke-linecap="round"/></svg>`;
+  const productionIcons = {
+    "producer":     {icon:SVG_OILDROP,         label:"Producer"},
+    "no production":{icon:SVG_OILDROP_CROSSED, label:"No Production"},
+  };
+  const rStatus = (com.productionStatus||"").toLowerCase().trim();
+  const pi3 = productionIcons[rStatus] || {icon:SVG_QUESTION, label:"Unknown"};
+  document.getElementById("panel-production").innerHTML =
+    `<div class="policy-status-row">
+        <span class="policy-status-icon policy-status-icon-lg">${pi3.icon}</span>
+        <div>
+          <div class="policy-status-label">${pi3.label}</div>
+          ${com.productionNote ? `<div class="policy-status-note">${com.productionNote}</div>` : ""}
+          ${sourceRow(com.productionSourceText, com.productionSourceLink)}
+        </div>
+       </div>`;
 
   // Fossil fuel consumption
   const consCells = [];

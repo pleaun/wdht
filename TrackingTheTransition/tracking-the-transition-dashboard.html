@@ -503,6 +503,14 @@ async function fetchSheet(){
         productionNote:   parts[11]||"",
         productionSourceText: parts[12]||"",
         productionSourceLink: parts[13]||"",
+        extractionStatus: parts[14]||"",
+        extractionNote:   parts[15]||"",
+        extractionSourceText: parts[16]||"",
+        extractionSourceLink: parts[17]||"",
+        consumptionStatus: parts[18]||"",
+        consumptionNote:   parts[19]||"",
+        consumptionSourceText: parts[20]||"",
+        consumptionSourceLink: parts[21]||"",
       };
     });
     _greenSet = new Set(Object.entries(_statusMap).filter(([,s])=>s==="green").map(([n])=>n));

@@ -1626,21 +1626,14 @@ function openPanel(name){
         </div>
        </div>`;
 
-  // Fossil fuel consumption
-  const consCells = [];
-  if(com.oilConsShare)  consCells.push(cell('Oil consumption', pct(com.oilConsShare)+' of global'+cagr(com.oilConsGrowth), ''));
-  if(com.coalConsShare) consCells.push(cell('Coal consumption', pct(com.coalConsShare)+' of global'+cagr(com.coalConsGrowth), ''));
-  if(com.gasConsShare)  consCells.push(cell('Gas consumption', pct(com.gasConsShare)+' of global'+cagr(com.gasConsGrowth), ''));
-  const consEl = document.getElementById("panel-consumption");
-  consEl.innerHTML = consCells.length ? `<div class="data-grid">${consCells.join('')}</div>` : '';
-  document.getElementById("section-consumption").style.display = consCells.length ? '' : 'none';
+  // Consumption, Extraction, Stories — layout only for now, data wiring pending
+  document.getElementById("panel-consumption").innerHTML = "";
+  document.getElementById("panel-extraction").innerHTML = "";
+  document.getElementById("panel-stories").innerHTML = "";
 
   document.getElementById("modal-overlay").classList.add("open");
   document.getElementById("panel-body").scrollTop=0;
 
-  const newsEl=document.getElementById("panel-news");
-  newsEl.innerHTML='<div id="panel-news-loading" style="opacity:0.45;font-size:12px;padding:8px 0;">Loading…</div>';
-  getCountryNews(dname).then(items=>renderNews(items, newsEl));
   selectedCountry = countries.find(c=>c.name===name)||{name,path2d:null,isGreen:false,isRed:false,isYellow:false};
 }
 

@@ -1621,8 +1621,9 @@ function openPanel(name){
 
   // Consumption
   const SVG_CONS_DOWN = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M8 14 L20 26 L27 19 L40 34" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 35 L40 34 L38 24" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  const SVG_CONS_UP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M8 34 L20 22 L27 29 L40 14" stroke="#de2251" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 13 L40 14 L38 24" stroke="#de2251" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  const SVG_CONS_FLAT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M8 24 L34 24" stroke="#8586b0" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M27 16 L34 24 L27 32" stroke="#8586b0" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const BARREL = `<path d="M17 9 C13 9 13 14 13 24 C13 34 13 39 17 39 L31 39 C35 39 35 34 35 24 C35 14 35 9 31 9 Z" fill="COLOR"/><line x1="13.5" y1="18.5" x2="34.5" y2="18.5" stroke="#ffffff" stroke-width="2" opacity="0.85"/><line x1="13.5" y1="29.5" x2="34.5" y2="29.5" stroke="#ffffff" stroke-width="2" opacity="0.85"/>`;
+  const SVG_CONS_UP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><g transform="translate(10.8 0.8) scale(0.55)">${BARREL.replace('COLOR','#de2251')}</g><g transform="translate(-0.88 15.12) scale(0.62)">${BARREL.replace('COLOR','#de2251')}</g><g transform="translate(19.12 15.12) scale(0.62)">${BARREL.replace('COLOR','#de2251')}</g></svg>`;
+  const SVG_CONS_FLAT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><line x1="4" y1="35" x2="44" y2="35" stroke="#d6d7e5" stroke-width="2" stroke-linecap="round"/><g transform="rotate(90 24 24)">${BARREL.replace('COLOR','#8586b0')}</g></svg>`;
   const consumptionIcons = {
     "declining": {icon:SVG_CONS_DOWN, label:"Declining"},
     "flat":      {icon:SVG_CONS_FLAT, label:"Flat"},

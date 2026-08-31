@@ -1600,9 +1600,47 @@ function openPanel(name){
         </div>
        </div>`;
 
-  // Consumption, Extraction, Stories — layout only for now, data wiring pending
-  document.getElementById("panel-consumption").innerHTML = "";
-  document.getElementById("panel-extraction").innerHTML = "";
+  // Extraction
+  const SVG_DERRICK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M24 6 L14 38 L19 38 L21 29 L27 29 L29 38 L34 38 Z" fill="#33367c"/><line x1="17.5" y1="21" x2="30.5" y2="21" stroke="#33367c" stroke-width="2"/><line x1="24" y1="6" x2="24" y2="2" stroke="#33367c" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+  const SVG_DERRICK_CROSSED = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M24 6 L14 38 L19 38 L21 29 L27 29 L29 38 L34 38 Z" fill="none" stroke="#19cd9b" stroke-width="2"/><line x1="17.5" y1="21" x2="30.5" y2="21" stroke="#19cd9b" stroke-width="1.6"/><line x1="24" y1="6" x2="24" y2="2" stroke="#19cd9b" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="40" x2="38" y2="6" stroke="#19cd9b" stroke-width="4" stroke-linecap="round"/></svg>`;
+  const extractionIcons = {
+    "expansion planned":                     {icon:SVG_DERRICK,         label:"Expansion Planned"},
+    "no commercially recoverable reserves":  {icon:SVG_DERRICK_CROSSED, label:"No Commercially Recoverable Reserves"},
+  };
+  const eStatus = (com.extractionStatus||"").toLowerCase().trim();
+  const pi4 = extractionIcons[eStatus] || {icon:SVG_QUESTION, label:"Unknown"};
+  document.getElementById("panel-extraction").innerHTML =
+    `<div class="policy-status-row">
+        <span class="policy-status-icon policy-status-icon-lg">${pi4.icon}</span>
+        <div>
+          <div class="policy-status-label">${pi4.label}</div>
+          ${com.extractionNote ? `<div class="policy-status-note">${com.extractionNote}</div>` : ""}
+          ${sourceRow(com.extractionSourceText, com.extractionSourceLink)}
+        </div>
+       </div>`;
+
+  // Consumption
+  const SVG_CONS_DOWN = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M8 14 L20 26 L27 19 L40 34" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 35 L40 34 L38 24" stroke="#19cd9b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const SVG_CONS_UP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M8 34 L20 22 L27 29 L40 14" stroke="#de2251" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 13 L40 14 L38 24" stroke="#de2251" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const SVG_CONS_FLAT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><path d="M8 24 L34 24" stroke="#8586b0" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M27 16 L34 24 L27 32" stroke="#8586b0" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const consumptionIcons = {
+    "declining": {icon:SVG_CONS_DOWN, label:"Declining"},
+    "flat":      {icon:SVG_CONS_FLAT, label:"Flat"},
+    "increasing":{icon:SVG_CONS_UP,   label:"Increasing"},
+  };
+  const cStatus2 = (com.consumptionStatus||"").toLowerCase().trim();
+  const pi5 = consumptionIcons[cStatus2] || {icon:SVG_QUESTION, label:"Unknown"};
+  document.getElementById("panel-consumption").innerHTML =
+    `<div class="policy-status-row">
+        <span class="policy-status-icon policy-status-icon-lg">${pi5.icon}</span>
+        <div>
+          <div class="policy-status-label">${pi5.label}</div>
+          ${com.consumptionNote ? `<div class="policy-status-note">${com.consumptionNote}</div>` : ""}
+          ${sourceRow(com.consumptionSourceText, com.consumptionSourceLink)}
+        </div>
+       </div>`;
+
+  // Stories — left as-is for now
   document.getElementById("panel-stories").innerHTML = "";
 
   document.getElementById("modal-overlay").classList.add("open");

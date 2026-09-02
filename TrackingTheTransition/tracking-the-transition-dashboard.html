@@ -1666,7 +1666,176 @@ function openPanel(name){
   selectedCountry = countries.find(c=>c.name===name)||{name,path2d:null,isGreen:false,isRed:false,isYellow:false};
 }
 
+// ── News pool — loaded ONCE per page (7 RSS + 1 NewsData call) ──
+let _newsAllItems = [];
+let _newsShown = 0;
+const NEWS_PAGE = 10;
+const NEWS_POOL_TTL = 24 * 60 * 60 * 1000; // 24h localStorage cache
 
+const ALIASES = {
+  'France':['French'],'Sweden':['Swedish'],'Germany':['German'],
+  'Norway':['Norwegian'],'Denmark':['Danish'],'Finland':['Finnish'],
+  'Netherlands':['Dutch','Holland'],
+  'United Kingdom':['UK','Britain','British','England','English','Scotland','Scottish','Wales','Welsh'],
+  'United States':['US','USA','America','American'],
+  'Australia':['Australian'],'Japan':['Japanese'],'Canada':['Canadian'],
+  'Spain':['Spanish'],'Italy':['Italian'],'Portugal':['Portuguese'],
+  'Poland':['Polish'],'Austria':['Austrian'],'Belgium':['Belgian'],
+  'Switzerland':['Swiss'],'Ireland':['Irish'],'Greece':['Greek'],
+  'Brazil':['Brazilian'],'India':['Indian'],'China':['Chinese'],
+  'South Korea':['Korean','South Korean'],'New Zealand':['Kiwi'],
+  'Czech Republic':['Czechia','Czech'],
+  'UAE':['Emirates','Emirati','Dubai','Abu Dhabi'],
+  'South Africa':['South African'],'Kenya':['Kenyan'],'Ghana':['Ghanaian'],
+  'Nigeria':['Nigerian'],'Colombia':['Colombian'],'Chile':['Chilean'],
+  'Argentina':['Argentine','Argentinian'],'Mexico':['Mexican'],
+  'Indonesia':['Indonesian'],'Pakistan':['Pakistani'],'Bangladesh':['Bangladeshi'],
+  'Vietnam':['Vietnamese'],'Thailand':['Thai'],'Turkey':['Turkish'],
+  'Morocco':['Moroccan'],'Egypt':['Egyptian'],'Ethiopia':['Ethiopian'],
+  'Tanzania':['Tanzanian'],'Senegal':['Senegalese'],'Rwanda':['Rwandan'],
+  'Costa Rica':['Costa Rican'],'Iceland':['Icelandic'],'Luxembourg':['Luxembourgish'],
+};
+
+const RSS_FEEDS = [
+  {url:'https://www.theguardian.com/environment/rss',                    source:'The Guardian'},
+  {url:'https://feeds.bbci.co.uk/news/science_and_environment/rss.xml', source:'BBC News'},
+  {url:'https://www.carbonbrief.org/feed/',                              source:'Carbon Brief'},
+  {url:'https://www.climatechangenews.com/feed/',                        source:'Climate Home News'},
+  {url:'https://insideclimatenews.org/feed/',                            source:'Inside Climate News'},
+  {url:'https://cleantechnica.com/feed/',                                source:'CleanTechnica'},
+  {url:'https://oilprice.com/rss/main',                                  source:'OilPrice.com'},
+  {url:'https://rss.nytimes.com/services/xml/rss/nyt/Climate.xml',      source:'NYT Climate'},
+  {url:'https://www.euractiv.com/feed/',                                 source:'Euractiv'},
+  {url:'https://www.renewableenergyworld.com/feed/',                     source:'Renewable Energy World'},
+];
+
+const _fetchT = (url, ms=10000) => {
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  return fetch(url, {signal:ctrl.signal}).finally(()=>clearTimeout(t));
+};
+
+// Promises for the two pools — resolved once, reused for all country lookups
+let _rssPool = null;
+let _apiPool = null;
+
+async function initNewsPool(){
+  // Try localStorage first (24h TTL — saves the daily API call on reload)
+  try{
+    const raw = localStorage.getItem('news_pool_v1');
+    if(raw){
+      const {ts, rss, api} = JSON.parse(raw);
+      if(Date.now() - ts < NEWS_POOL_TTL){
+        _rssPool = Promise.resolve(rss);
+        _apiPool  = Promise.resolve(api);
+        return;
+      }
+    }
+  }catch(e){}
+
+  // Fetch all 7 RSS feeds in parallel (free, no quota)
+  _rssPool = Promise.allSettled(RSS_FEEDS.map(async feed=>{
+    try{
+      const res = await _fetchT(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`);
+      if(!res.ok) return [];
+      const d = await res.json();
+      if(d.status!=='ok'||!d.items?.length) return [];
+      return d.items.map(i=>({
+        title:(i.title||'').trim(), link:i.link||i.guid||'',
+        pubDate:i.pubDate||'', source:feed.source,
+        snippet:(i.description||'').replace(/<[^>]+>/g,' ').slice(0,500)
+      })).filter(i=>i.title&&i.link);
+    }catch(e){ return []; }
+  })).then(results=>results.flatMap(r=>r.status==='fulfilled'?r.value:[]));
+
+  // Worker pool — populated lazily per country (not on init)
+  _apiPool = Promise.resolve([]); // placeholder; worker called in getCountryNews
+
+  // Persist to localStorage after both resolve
+  Promise.all([_rssPool, _apiPool]).then(([rss, api])=>{
+    try{ localStorage.setItem('news_pool_v1', JSON.stringify({ts:Date.now(), rss, api})); }catch(e){}
+  });
+}
+
+async function getCountryNews(countryName){
+  if(!_rssPool) initNewsPool();
+  const aliases = [countryName, ...(ALIASES[countryName]||[])];
+  const countryRe = new RegExp(aliases.map(a=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'), 'i');
+
+  // Fetch RSS pool + Worker in parallel
+  const workerPromise = (async()=>{
+    if(!WORKER_URL) return [];
+    try{
+      const res = await _fetchT(`${WORKER_URL}/news?country=${encodeURIComponent(countryName)}&max=100`);
+      if(!res.ok) return [];
+      const d = await res.json();
+      return d.articles||[];
+    }catch(e){ return []; }
+  })();
+
+  const [rssAll, workerArticles] = await Promise.all([_rssPool, workerPromise]);
+  const rssCountry = rssAll.filter(i=>countryRe.test(i.title)||countryRe.test(i.snippet));
+
+  const seen = new Set();
+  // Worker articles first (include history), then RSS
+  return [...workerArticles, ...rssCountry].filter(item=>{
+    const key = item.title.slice(0,50).toLowerCase();
+    if(seen.has(key)) return false;
+    seen.add(key); return true;
+  }).sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
+}
+
+function renderNews(items, container){
+  _newsAllItems = items || [];
+  _newsShown = 0;
+  if(!_newsAllItems.length){
+    container.innerHTML='<div id="panel-news-loading" style="opacity:0.45;font-size:12px;padding:8px 0;">No news found</div>';
+    return;
+  }
+  container.innerHTML='<div id="news-list"></div>';
+  appendNewsItems(container);
+}
+
+function appendNewsItems(container){
+  const list = container.querySelector('#news-list') || container;
+  const batch = _newsAllItems.slice(_newsShown, _newsShown + NEWS_PAGE);
+  const allSources = new Set(_newsAllItems.map(i=>i.source).filter(Boolean));
+  const showSource = allSources.size > 1;
+  let shownGlobalHeader = !!container.querySelector('#news-global-header');
+  batch.forEach(item=>{
+    // Insert "Global climate news" divider before first fallback item
+    if(item.isGlobal && !shownGlobalHeader){
+      shownGlobalHeader = true;
+      const hdr = document.createElement('div');
+      hdr.id = 'news-global-header';
+      hdr.style.cssText = 'font-size:9px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:rgba(102,206,240,0.45);padding:14px 0 6px;border-top:1px solid rgba(255,255,255,0.06);margin-top:6px;';
+      hdr.textContent = 'Global climate news';
+      list.appendChild(hdr);
+    }
+    const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('en',{month:'short',day:'numeric'}) : '';
+    const src = showSource ? (item.source||'') : '';
+    const meta = [src, date].filter(Boolean).join(' · ');
+    const div = document.createElement('div');
+    div.className = 'news-item';
+    div.innerHTML = `<a class="news-title" href="${item.link}" target="_blank" rel="noopener">${item.title}</a>
+      ${meta?`<div class="news-meta">${meta}</div>`:''}`;
+    list.appendChild(div);
+  });
+  _newsShown += batch.length;
+  const old = container.querySelector('#news-load-more');
+  if(old) old.remove();
+  if(_newsShown < _newsAllItems.length){
+    const a = document.createElement('a');
+    a.id = 'news-load-more';
+    a.href = '#';
+    a.textContent = 'See more';
+    a.style.cssText = 'display:inline-block;margin-top:12px;font-size:12px;font-weight:500;color:#8586b0;text-decoration:none;letter-spacing:0.04em;cursor:pointer;';
+    a.onmouseenter=()=>a.style.opacity='1';
+    a.onmouseleave=()=>a.style.opacity='0.7';
+    a.onclick=(e)=>{e.preventDefault();appendNewsItems(container);};
+    container.appendChild(a);
+  }
+}
 
 function closePanel(){
   document.getElementById("modal-overlay").classList.remove("open");

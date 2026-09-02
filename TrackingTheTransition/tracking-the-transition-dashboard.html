@@ -860,9 +860,9 @@ function drawFrame(ts){
   offBaseCtx.save(); offBaseCtx.beginPath(); offBaseCtx.rect(0,0,w,h); offBaseCtx.clip();
   offGreenCtx.save(); offGreenCtx.beginPath(); offGreenCtx.rect(0,0,w,h); offGreenCtx.clip();
 
-  // 1. All countries — gray base (Planet 20), always visible
+  // 1. All countries — neutral base for non-green/non-red, always visible
   for(const c of countries){
-    offBaseCtx.fillStyle="#eaeaf1";
+    offBaseCtx.fillStyle="#8586b0";
     offBaseCtx.fill(c.path2d);
     offBaseCtx.strokeStyle="#c1c2d7";
     offBaseCtx.lineWidth=0.5;

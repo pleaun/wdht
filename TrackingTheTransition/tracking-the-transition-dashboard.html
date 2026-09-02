@@ -1769,11 +1769,21 @@ async function getCountryNews(countryName){
 
   const seen = new Set();
   // Worker articles first (include history), then RSS
-  return [...workerArticles, ...rssCountry].filter(item=>{
+  const countrySpecific = [...workerArticles, ...rssCountry].filter(item=>{
     const key = item.title.slice(0,50).toLowerCase();
     if(seen.has(key)) return false;
     seen.add(key); return true;
   }).sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
+
+  // Many countries have little or no country-specific coverage on any given day.
+  // Top up with general climate news (deduped, marked isGlobal) instead of showing nothing.
+  if(countrySpecific.length >= 3) return countrySpecific;
+  const globalItems = rssAll
+    .filter(item=>!seen.has(item.title.slice(0,50).toLowerCase()))
+    .sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0))
+    .slice(0, 15)
+    .map(item=>({...item, isGlobal:true}));
+  return [...countrySpecific, ...globalItems];
 }
 
 function renderNews(items, container){

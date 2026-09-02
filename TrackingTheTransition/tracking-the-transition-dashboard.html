@@ -1643,13 +1643,13 @@ function openPanel(name){
   const BARREL = `<path d="M17 9 C13 9 13 14 13 24 C13 34 13 39 17 39 L31 39 C35 39 35 34 35 24 C35 14 35 9 31 9 Z" fill="#111111"/><ellipse cx="24" cy="9.5" rx="9" ry="2.6" fill="#333333"/><path d="M16 12 C15 18 15 30 16 36" stroke="#ffffff" stroke-width="2.5" opacity="0.15" fill="none" stroke-linecap="round"/><line x1="13.5" y1="18.5" x2="34.5" y2="18.5" stroke="#4a4a4a" stroke-width="1.8" opacity="0.9"/><line x1="13.5" y1="29.5" x2="34.5" y2="29.5" stroke="#4a4a4a" stroke-width="1.8" opacity="0.9"/>`;
   const SVG_CONS_UP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><g transform="translate(-0.64 31.36) scale(0.36)">${BARREL}</g><g transform="translate(11.36 19.36) scale(0.36)">${BARREL}</g><g transform="translate(23.36 7.36) scale(0.36)">${BARREL}</g></svg>`;
   const SVG_CONS_FLAT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%"><line x1="4" y1="35" x2="44" y2="35" stroke="#d6d7e5" stroke-width="2" stroke-linecap="round"/><g transform="rotate(90 24 24)">${BARREL}</g></svg>`;
-  const consumptionIcons = {
-    "decreasing":{icon:SVG_CONS_DOWN, label:"Decreasing"},
-    "flat":      {icon:SVG_CONS_FLAT, label:"Flat"},
-    "increasing":{icon:SVG_CONS_UP,   label:"Increasing"},
-  };
+  const consumptionIcons = [
+    [/decreas/, {icon:SVG_CONS_DOWN, label:"Decreasing"}],
+    [/flat/,    {icon:SVG_CONS_FLAT, label:"Flat"}],
+    [/increas/, {icon:SVG_CONS_UP,   label:"Increasing"}],
+  ];
   const cStatus2 = (com.consumptionStatus||"").toLowerCase().trim();
-  const pi5 = consumptionIcons[cStatus2] || {icon:SVG_QUESTION, label:"Unknown"};
+  const pi5 = (consumptionIcons.find(([re])=>re.test(cStatus2))||[])[1] || {icon:SVG_QUESTION, label:"Unknown"};
   document.getElementById("panel-consumption").innerHTML =
     `<div class="policy-status-row">
         <span class="policy-status-icon policy-status-icon-lg">${pi5.icon}</span>

@@ -1633,7 +1633,7 @@ function openPanel(name){
     `<div class="policy-status-row">
         <span class="policy-status-icon policy-status-icon-lg">${pi4.icon}</span>
         <div>
-          <div><span class="policy-category-label">Extraction: </span><span class="policy-status-label">${pi4.label}</span></div>
+          <div class="policy-status-label">${pi4.label}</div>
           ${com.extractionNote ? `<div class="policy-status-note">${com.extractionNote}</div>` : ""}
           ${sourceRow(com.extractionSourceText, com.extractionSourceLink)}
         </div>

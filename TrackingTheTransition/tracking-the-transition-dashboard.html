@@ -1657,8 +1657,10 @@ function openPanel(name){
         </div>
        </div>`;
 
-  // Stories — left as-is for now
-  document.getElementById("panel-stories").innerHTML = "";
+  // Stories (RSS news)
+  const storiesEl = document.getElementById("panel-stories");
+  storiesEl.innerHTML = '<div id="panel-news-loading" style="opacity:0.45;font-size:12px;padding:8px 0;">Loading…</div>';
+  getCountryNews(dname).then(items=>renderNews(items, storiesEl));
 
   document.getElementById("modal-overlay").classList.add("open");
   document.getElementById("panel-body").scrollTop=0;

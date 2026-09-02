@@ -523,6 +523,8 @@ async function fetchSheet(){
     });
     _greenSet = new Set(Object.entries(_statusMap).filter(([,s])=>s==="green").map(([n])=>n));
     console.log("[Map] Sheet loaded, green:", _greenSet.size);
+    // Init news pool in background (7 RSS feeds + worker)
+    setTimeout(()=>initNewsPool(), 2000);
   } catch(e){
     console.warn("[Map] Sheet failed:", e.message);
   }

@@ -1655,7 +1655,7 @@ function openPanel(name){
     `<div class="policy-status-row">
         <span class="policy-status-icon policy-status-icon-lg">${pi5.icon}</span>
         <div>
-          <div><span class="policy-category-label">Consumption: </span><span class="policy-status-label">${pi5.label}</span></div>
+          <div class="policy-status-label">${pi5.label}</div>
           ${com.consumptionNote ? `<div class="policy-status-note">${com.consumptionNote}</div>` : ""}
           ${sourceRow(com.consumptionSourceText, com.consumptionSourceLink)}
         </div>

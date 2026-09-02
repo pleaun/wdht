@@ -1562,7 +1562,7 @@ function openPanel(name){
     `<div class="policy-status-row">
         <span class="policy-status-icon policy-status-icon-lg">${pi.icon}</span>
         <div>
-          <div class="policy-status-label">${pi.label}</div>
+          <div><span class="policy-category-label">Commitment: </span><span class="policy-status-label">${pi.label}</span></div>
           ${com.commitmentNote ? `<div class="policy-status-note">${com.commitmentNote}</div>` : ""}
         </div>
        </div>`;

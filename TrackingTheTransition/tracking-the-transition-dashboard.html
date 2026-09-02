@@ -796,10 +796,16 @@ function resize(){
   const xExtent=Math.max(Math.abs(pTuvalu[0]),Math.abs(pRight[0]))*2;
   const yExtent=pp([0,-58])[1]-pp([0,82])[1];
   const pad=0.02;
-  const baseScale=Math.min(probeScale*(w*(1-pad*2)/xExtent), probeScale*(h*(1-pad*2)/yExtent));
+  // Reserve real margin bands at top/bottom so the landmass never sits under
+  // the title or the stats — both live over guaranteed empty space instead.
+  const topReserve=Math.min(150, h*0.18);
+  const bottomReserve=Math.min(230, h*0.26);
+  const usableH=Math.max(80, h-topReserve-bottomReserve);
+  const baseScale=Math.min(probeScale*(w*(1-pad*2)/xExtent), probeScale*(usableH/yExtent));
   const tmp=d3.geoNaturalEarth1().rotate([-24,0,0]).scale(baseScale).translate([0,0]);
   const yMid=(tmp([0,80])[1]+tmp([0,-56])[1])*0.5;
-  proj=d3.geoNaturalEarth1().rotate([-24,0,0]).scale(baseScale).translate([w*0.5,h*0.5-yMid]);
+  const centerY=topReserve+usableH*0.5;
+  proj=d3.geoNaturalEarth1().rotate([-24,0,0]).scale(baseScale).translate([w*0.5,centerY-yMid]);
   pathFn=d3.geoPath().projection(proj);
   bakeNoise();
   resizeOcean();

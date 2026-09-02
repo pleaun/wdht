@@ -1605,7 +1605,7 @@ function openPanel(name){
     `<div class="policy-status-row">
         <span class="policy-status-icon policy-status-icon-lg">${pi3.icon}</span>
         <div>
-          <div class="policy-status-label">${pi3.label}</div>
+          <div><span class="policy-category-label">Production: </span><span class="policy-status-label">${pi3.label}</span></div>
           ${com.productionNote ? `<div class="policy-status-note">${com.productionNote}</div>` : ""}
           ${sourceRow(com.productionSourceText, com.productionSourceLink)}
         </div>

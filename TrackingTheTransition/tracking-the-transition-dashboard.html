@@ -637,7 +637,7 @@ function findHoveredCountry(mx, my){
 
 // Overlay div captures all mouse events reliably
 const overlay = document.createElement("div");
-overlay.style.cssText = "position:absolute;inset:0;z-index:5;cursor:default;";
+overlay.style.cssText = "position:absolute;inset:0;z-index:5;cursor:grab;";
 document.getElementById("wrap").appendChild(overlay);
 
 // window listener for trail (never loses events when cursor leaves canvas)

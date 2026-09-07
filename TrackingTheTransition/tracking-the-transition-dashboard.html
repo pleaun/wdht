@@ -1870,8 +1870,57 @@ function svgTransform(){
     .forEach(s=>{if(s)s.style.transform=`matrix(${mapScale},0,0,${mapScale},${tx},${ty})`;});
 }
 
-// Touch: horizontal pan only, no pinch zoom
+function clampPanX(x, scale){
+  const maxPan=(w||window.innerWidth)*(scale-1)*0.5+80;
+  return Math.max(-maxPan,Math.min(maxPan,x));
+}
+
+// Touch: single-finger horizontal pan, two-finger pinch-to-zoom
+let pinchStartDist=0, pinchStartScale=1, pinchWorldX=0;
 document.getElementById("wrap").addEventListener("touchstart",e=>{
+  if(e.touches.length===1){
+    isTouching=true;
+    touchStartX=e.touches[0].clientX;
+    touchPanX=panX;
+  } else if(e.touches.length===2){
+    isTouching=false;
+    const t0=e.touches[0], t1=e.touches[1];
+    pinchStartDist=Math.hypot(t1.clientX-t0.clientX, t1.clientY-t0.clientY);
+    pinchStartScale=mapScale;
+    const midX=(t0.clientX+t1.clientX)/2;
+    const rect=canvas.getBoundingClientRect();
+    const cx2=(w||window.innerWidth)/2;
+    pinchWorldX=(midX-rect.left-cx2-panX)/mapScale+cx2;
+  }
+},{passive:true});
+
+document.getElementById("wrap").addEventListener("touchmove",e=>{
+  if(e.touches.length===2){
+    e.preventDefault();
+    const t0=e.touches[0], t1=e.touches[1];
+    const dist=Math.hypot(t1.clientX-t0.clientX, t1.clientY-t0.clientY);
+    const newScale=Math.max(MIN_SCALE,Math.min(MAX_SCALE, pinchStartScale*(dist/pinchStartDist)));
+    const midX=(t0.clientX+t1.clientX)/2;
+    const rect=canvas.getBoundingClientRect();
+    const cx2=(w||window.innerWidth)/2;
+    mapScale=newScale;
+    panX=clampPanX(midX-rect.left-cx2-(pinchWorldX-cx2)*newScale, newScale);
+    panY=0;
+    svgTransform();
+    return;
+  }
+  if(!isTouching||e.touches.length!==1) return;
+  e.preventDefault();
+  // Horizontal pan; clamp so map edge doesn't go past center
+  const dx=e.touches[0].clientX-touchStartX;
+  panX=clampPanX(touchPanX+dx, mapScale);
+  panY=0; // lock vertical
+  svgTransform();
+},{passive:false});
+
+document.getElementById("wrap").addEventListener("touchend",e=>{
+  isTouching=false;
+  // Dropping from 2 fingers to 1 mid-pinch: reinitialize single-finger pan baseline
   if(e.touches.length===1){
     isTouching=true;
     touchStartX=e.touches[0].clientX;
@@ -1879,18 +1928,40 @@ document.getElementById("wrap").addEventListener("touchstart",e=>{
   }
 },{passive:true});
 
-document.getElementById("wrap").addEventListener("touchmove",e=>{
-  if(!isTouching||e.touches.length!==1) return;
+// Desktop: wheel to zoom (cursor-centered), click-drag to pan
+let isDragging=false, dragStartX=0, dragStartY=0, dragPanX=0, dragMoved=false, suppressNextClick=false;
+overlay.addEventListener("mousedown", e=>{
+  isDragging=true; dragMoved=false;
+  dragStartX=e.clientX; dragStartY=e.clientY; dragPanX=panX;
+  overlay.style.cursor="grabbing";
+});
+window.addEventListener("mousemove", e=>{
+  if(!isDragging) return;
+  const dx=e.clientX-dragStartX, dy=e.clientY-dragStartY;
+  if(Math.abs(dx)>4||Math.abs(dy)>4) dragMoved=true;
+  panX=clampPanX(dragPanX+dx, mapScale);
+  panY=0;
+  svgTransform();
+});
+window.addEventListener("mouseup", ()=>{
+  if(isDragging&&dragMoved) suppressNextClick=true;
+  isDragging=false;
+  overlay.style.cursor="grab";
+});
+
+document.getElementById("wrap").addEventListener("wheel", e=>{
   e.preventDefault();
-  // Horizontal pan; clamp so map edge doesn't go past center
-  const dx=e.touches[0].clientX-touchStartX;
-  const maxPan=(w||window.innerWidth)*(mapScale-1)*0.5+80;
-  panX=Math.max(-maxPan,Math.min(maxPan,touchPanX+dx));
-  panY=0; // lock vertical
+  const rect=canvas.getBoundingClientRect();
+  const rawX=e.clientX-rect.left;
+  const cx2=(w||window.innerWidth)/2;
+  const worldX=(rawX-cx2-panX)/mapScale+cx2;
+  const zoomFactor=Math.exp(-e.deltaY*0.0015);
+  const newScale=Math.max(MIN_SCALE,Math.min(MAX_SCALE, mapScale*zoomFactor));
+  mapScale=newScale;
+  panX=clampPanX(rawX-cx2-(worldX-cx2)*newScale, newScale);
+  panY=0;
   svgTransform();
 },{passive:false});
-
-document.getElementById("wrap").addEventListener("touchend",()=>{ isTouching=false; },{passive:true});
 
 loadAndInit();
 

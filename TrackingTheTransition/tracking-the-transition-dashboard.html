@@ -775,8 +775,14 @@ function resize(){
   const pad=0.02;
   // Reserve real margin bands at top/bottom so the landmass never sits under
   // the title or the stats — both live over guaranteed empty space instead.
-  const topReserve=Math.min(150, h*0.18);
-  const bottomReserve=Math.min(230, h*0.26);
+  // Measure the actual rendered title/stats instead of guessing, so the map
+  // only gives up as much space as those elements truly need.
+  const titleEl=document.getElementById('map-headline');
+  const statsEl=document.getElementById('bottom-stats');
+  const titleBottom=titleEl ? titleEl.getBoundingClientRect().bottom : h*0.12;
+  const statsTop=statsEl ? statsEl.getBoundingClientRect().top : h*0.78;
+  const topReserve=Math.min(titleBottom+14, h*0.3);
+  const bottomReserve=Math.min((h-statsTop)+14, h*0.34);
   const usableH=Math.max(80, h-topReserve-bottomReserve);
   const baseScale=Math.min(probeScale*(w*(1-pad*2)/xExtent), probeScale*(usableH/yExtent));
   const tmp=d3.geoNaturalEarth1().rotate([-24,0,0]).scale(baseScale).translate([0,0]);

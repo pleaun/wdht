@@ -1879,9 +1879,10 @@ function appendNewsItems(container){
     const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('en',{month:'short',day:'numeric'}) : '';
     const src = showSource ? (item.source||'') : '';
     const meta = [src, date].filter(Boolean).join(' · ');
+    const icon = NEWS_SENTIMENT_ICON[classifyStorySentiment(item)];
     const div = document.createElement('div');
     div.className = 'news-item';
-    div.innerHTML = `<a class="news-title" href="${item.link}" target="_blank" rel="noopener">${item.title}</a>
+    div.innerHTML = `<a class="news-title" href="${item.link}" target="_blank" rel="noopener"><span class="news-sentiment-icon">${icon}</span><span class="news-title-text">${item.title}</span></a>
       ${meta?`<div class="news-meta">${meta}</div>`:''}`;
     list.appendChild(div);
   });

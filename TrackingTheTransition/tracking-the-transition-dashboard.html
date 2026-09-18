@@ -1755,36 +1755,59 @@ async function initNewsPool(){
   });
 }
 
+// Google News' own search ranks by relevance across thousands of outlets — this is what
+// actually solves "why isn't the important stuff showing up", not more fixed RSS feeds.
+const NEWS_COUNTRY_TTL = 3 * 60 * 60 * 1000; // 3h — per-country, cheap to refresh more often than the 24h global pool
+const NEWS_TOPIC_CLAUSE = '(climate OR "fossil fuel" OR emissions OR "energy transition" OR renewable OR coal OR oil OR gas)';
+
+function buildGoogleNewsQuery(countryName){
+  const aliases = [countryName, ...(ALIASES[countryName]||[])];
+  const nameClause = aliases.length>1 ? `(${aliases.map(a=>`"${a}"`).join(' OR ')})` : `"${countryName}"`;
+  return `${nameClause} ${NEWS_TOPIC_CLAUSE}`;
+}
+
+async function fetchGoogleNews(countryName){
+  const q = buildGoogleNewsQuery(countryName);
+  const gnewsUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
+  try{
+    const res = await _fetchT(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(gnewsUrl)}`);
+    if(!res.ok) return [];
+    const d = await res.json();
+    if(d.status!=='ok'||!d.items?.length) return [];
+    return d.items.map(i=>{
+      let title = (i.title||'').trim();
+      let source = 'Google News';
+      // Google News titles are "Actual headline - Publisher"; split it out for the byline.
+      const m = title.match(/^(.*)\s-\s([^-]+)$/);
+      if(m){ title = m[1].trim(); source = m[2].trim(); }
+      return { title, link:i.link||i.guid||'', pubDate:i.pubDate||'', source, snippet:'' };
+    }).filter(i=>i.title&&i.link);
+  }catch(e){ return []; }
+}
+
+async function fetchGoogleNewsCached(countryName){
+  const key = `gnews_v1_${countryName}`;
+  try{
+    const raw = localStorage.getItem(key);
+    if(raw){
+      const {ts, items} = JSON.parse(raw);
+      if(Date.now()-ts < NEWS_COUNTRY_TTL) return items;
+    }
+  }catch(e){}
+  const items = await fetchGoogleNews(countryName);
+  try{ localStorage.setItem(key, JSON.stringify({ts:Date.now(), items})); }catch(e){}
+  return items;
+}
+
 async function getCountryNews(countryName){
   if(!_rssPool) initNewsPool();
-  const aliases = [countryName, ...(ALIASES[countryName]||[])];
-  const countryRe = new RegExp(aliases.map(a=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'), 'i');
+  const countrySpecific = await fetchGoogleNewsCached(countryName);
 
-  // Fetch RSS pool + Worker in parallel
-  const workerPromise = (async()=>{
-    if(!WORKER_URL) return [];
-    try{
-      const res = await _fetchT(`${WORKER_URL}/news?country=${encodeURIComponent(countryName)}&max=100`);
-      if(!res.ok) return [];
-      const d = await res.json();
-      return d.articles||[];
-    }catch(e){ return []; }
-  })();
-
-  const [rssAll, workerArticles] = await Promise.all([_rssPool, workerPromise]);
-  const rssCountry = rssAll.filter(i=>countryRe.test(i.title)||countryRe.test(i.snippet));
-
-  const seen = new Set();
-  // Worker articles first (include history), then RSS
-  const countrySpecific = [...workerArticles, ...rssCountry].filter(item=>{
-    const key = item.title.slice(0,50).toLowerCase();
-    if(seen.has(key)) return false;
-    seen.add(key); return true;
-  }).sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
-
-  // Many countries have little or no country-specific coverage on any given day.
+  // Even Google News comes up thin for some countries on quiet days.
   // Top up with general climate news (deduped, marked isGlobal) instead of showing nothing.
   if(countrySpecific.length >= 3) return countrySpecific;
+  const seen = new Set(countrySpecific.map(i=>i.title.slice(0,50).toLowerCase()));
+  const rssAll = await _rssPool;
   const globalItems = rssAll
     .filter(item=>!seen.has(item.title.slice(0,50).toLowerCase()))
     .sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0))

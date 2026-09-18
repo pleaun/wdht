@@ -1821,6 +1821,34 @@ async function getCountryNews(countryName){
   return [...countrySpecific, ...globalItems];
 }
 
+// ── Story sentiment (per the tracker's own good/bad semantics) ──
+const NEWS_ICON_POSITIVE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27"><path fill="#19cd9b" fill-rule="evenodd" d="M19,1A8,8,0,0,0,13.5,3.14,8,8,0,0,0,0,9c0,8.26,9.32,16,13.5,16C17.94,25,27,16.36,27,9A8,8,0,0,0,19,1Zm4,9.5a1,1,0,0,1-1-1A3.5,3.5,0,0,0,18.5,6a1,1,0,0,1,0-2A5.51,5.51,0,0,1,24,9.5,1,1,0,0,1,23,10.5Z"/></svg>`;
+const NEWS_ICON_NEGATIVE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27"><path fill="#de2251" d="M26.7,22.63,15.45,3.12a2.26,2.26,0,0,0-3.9,0L.3,22.63a2.25,2.25,0,0,0,2,3.37h22.5A2.25,2.25,0,0,0,26.7,22.63ZM13.39,8h.11a1.74,1.74,0,0,1,1.74,1.74v.11l-.43,6.92a1.31,1.31,0,0,1-2.62,0l-.43-6.92A1.74,1.74,0,0,1,13.39,8Zm.11,15a1.75,1.75,0,1,1,1.75-1.75A1.75,1.75,0,0,1,13.5,23Z"/></svg>`;
+const NEWS_ICON_NEUTRAL = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27"><rect x="1" y="4" width="20" height="19" rx="1.3" fill="#8586b0"/><rect x="21" y="9" width="4.5" height="12" rx="1" fill="#8586b0"/><rect x="4" y="7.3" width="10" height="2.4" fill="#ffffff" opacity="0.9"/><rect x="4" y="12" width="14" height="1.5" fill="#ffffff" opacity="0.7"/><rect x="4" y="14.8" width="14" height="1.5" fill="#ffffff" opacity="0.7"/><rect x="4" y="17.6" width="14" height="1.5" fill="#ffffff" opacity="0.7"/><rect x="4" y="20.4" width="9" height="1.5" fill="#ffffff" opacity="0.7"/></svg>`;
+
+const NEWS_SENTIMENT_RE = {
+  positive: [/renewable/i,/\bsolar\b/i,/\bwind (farm|power|energy)/i,/clean energy/i,/net.?zero/i,/decarboni[sz]/i,
+    /phas(e|ed|es|ing)[\s-]?out/i,/emissions? (fall|falls|falling|drop|drops|dropped|cut|cuts|down)/i,
+    /climate (deal|agreement|win|breakthrough)/i,/coal (plant )?closure/i,/closes? coal/i,/ev sales/i,
+    /electric vehicle/i,/divest/i,/green (investment|transition|energy|bond)/i,/sustainable/i,/climate finance/i,
+    /ratif(y|ies|ied)/i,/expands? renewable/i,/record renewable/i,/milestone/i,/battery storage/i],
+  negative: [/new (oil|gas|coal)/i,/\bdrilling\b|\bdrill\b/i,/fossil fuel subsid/i,/oil giant/i,/gas project/i,
+    /coal expansion/i,/\bpipeline\b/i,/fracking/i,/emissions? (rise|rises|rising|increase|record)/i,/wildfire/i,
+    /\bflood/i,/\bdrought/i,/climate crisis/i,/extreme heat/i,/deforestation/i,/rolls? back|rollback/i,
+    /weakens?/i,/cancels? climate/i,/greenwash/i,/oil spill/i,/\bcancer\b/i,/pollution/i,
+    /blocks? (climate|transition)/i,/oppos(e|es|ed|ing) (ban|climate)/i,/resists? ban/i,/sues|lawsuit/i],
+};
+function classifyStorySentiment(item){
+  const text = `${item.title||''} ${item.snippet||''}`;
+  let pos=0, neg=0;
+  for(const re of NEWS_SENTIMENT_RE.positive) if(re.test(text)) pos++;
+  for(const re of NEWS_SENTIMENT_RE.negative) if(re.test(text)) neg++;
+  if(pos>neg && pos>0) return 'positive';
+  if(neg>pos && neg>0) return 'negative';
+  return 'neutral';
+}
+const NEWS_SENTIMENT_ICON = {positive:NEWS_ICON_POSITIVE, negative:NEWS_ICON_NEGATIVE, neutral:NEWS_ICON_NEUTRAL};
+
 function renderNews(items, container){
   _newsAllItems = items || [];
   _newsShown = 0;

@@ -2013,6 +2013,7 @@ window.addEventListener("mouseup", ()=>{
 });
 
 document.getElementById("wrap").addEventListener("wheel", e=>{
+  if(document.getElementById("modal-overlay").classList.contains("open")) return;
   e.preventDefault();
   const rect=canvas.getBoundingClientRect();
   const rawX=e.clientX-rect.left;

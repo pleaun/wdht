@@ -1959,6 +1959,7 @@ document.getElementById("wrap").addEventListener("touchstart",e=>{
 },{passive:true});
 
 document.getElementById("wrap").addEventListener("touchmove",e=>{
+  if(document.getElementById("modal-overlay").classList.contains("open")) return;
   if(e.touches.length===2){
     e.preventDefault();
     const t0=e.touches[0], t1=e.touches[1];

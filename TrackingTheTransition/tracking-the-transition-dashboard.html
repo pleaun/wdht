@@ -1941,6 +1941,7 @@ function clampPanX(x, scale){
 // Touch: single-finger horizontal pan, two-finger pinch-to-zoom
 let pinchStartDist=0, pinchStartScale=1, pinchWorldX=0;
 document.getElementById("wrap").addEventListener("touchstart",e=>{
+  if(document.getElementById("modal-overlay").classList.contains("open")) return;
   if(e.touches.length===1){
     isTouching=true;
     touchStartX=e.touches[0].clientX;

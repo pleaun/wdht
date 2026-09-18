@@ -178,10 +178,11 @@ canvas#map{position:absolute;inset:0;width:100%;height:100%;display:block;z-inde
 #panel-close:hover{background:#eaeaf1;}
 
 /* ── Panel body ── */
-#panel-body{flex:1;min-height:0;overflow-y:auto;padding:20px 28px 28px;display:grid;grid-template-columns:1fr 1fr;gap:20px 28px;scrollbar-width:thin;scrollbar-color:rgba(25,205,155,0.3) transparent;align-content:start;}
-@media(max-width:600px){#panel-body{grid-template-columns:1fr;} #panel-header{padding:18px 18px 14px;} #panel-body{padding:14px 16px 20px;}}
+#panel-body{flex:1;min-height:0;overflow-y:auto;padding:20px 28px 28px;display:flex;align-items:flex-start;gap:20px 32px;scrollbar-width:thin;scrollbar-color:rgba(25,205,155,0.3) transparent;}
+#panel-left{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;gap:20px;}
+#panel-right{flex:1 1 50%;min-width:0;}
+@media(max-width:600px){#panel-body{flex-direction:column;} #panel-header{padding:18px 18px 14px;} #panel-body{padding:14px 16px 20px;}}
 .panel-section{margin-bottom:0;}
-.panel-full{grid-column:1/-1;}
 .row-link{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;background:#e0faf3;color:#19cd9b;font-size:10px;text-decoration:none;margin-left:5px;vertical-align:middle;transition:background 0.15s,color 0.15s;}
 .row-link:hover{background:#19cd9b;color:#fff;}
 /* ── Commitments ── */
